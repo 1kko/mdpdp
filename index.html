@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<meta charset = "utf-8">
+<head>
+	<title>MDPDP</title>
+	<!-- Generated from http://realfavicongenerator.net/ -->
+	<link rel="apple-touch-icon" sizes="57x57" href="images/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="images/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="images/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="images/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="images/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="images/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon-180x180.png">
+	<link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="images/android-chrome-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="images/favicon-16x16.png" sizes="16x16">
+	<link rel="manifest" href="images/manifest.json">
+	<link rel="shortcut icon" href="images/favicon.ico">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="images/mstile-144x144.png">
+	<meta name="msapplication-config" content="images/browserconfig.xml">
+	<meta name="theme-color" content="#ffffff">
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
+	<!-- http://axicon.axisj.com/ -->
+	<link rel="stylesheet" type="text/css" href="axicon/axicon.min.css">
+	<link rel="stylesheet" type="text/css" href="js/jstree/themes/proton/style.min.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-select.min.css">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-switch.min.css">
+	<link rel="stylesheet" type="text/css" href="css/colorbox.css">
+	<link rel="stylesheet" type="text/css" href="css/custom.css" >
+	<link rel="stylesheet" type="text/css" href="css/jquery.json-view.css">
+
+
+
+	<!-- https://jquery.com/ -->
+	<script src="js/jquery-1.11.2.min.js"></script>
+	<script src="js/jquery-migrate-1.2.1.min.js"></script>
+
+	<!-- http://getbootstrap.com/ -->
+	<script src="js/bootstrap.min.js"></script>
+
+	<!-- http://www.tinymce.com/ -->
+	<script src="js/tinymce/tinymce.min.js"></script>
+	
+	<!-- http://www.jstree.com/ -->
+	<script src="js/jstree/jstree.min.js"></script>
+
+	<!-- http://silviomoreto.github.io/bootstrap-select/ -->
+	<script src="js/bootstrap-select.min.js"></script>
+
+	<!-- http://www.bootstrap-switch.org/ -->
+	<!-- https://github.com/nostalgiaz/bootstrap-switch -->
+	<script src="js/bootstrap-switch.min.js"></script>
+
+	<!-- http://bootstrap-growl.remabledesigns.com/ -->
+	<!-- https://github.com/mouse0270/bootstrap-notify -->
+	<script src="js/bootstrap-notify.min.js"></script>
+
+	<!-- https://github.com/carhartl/jquery-cookie -->
+	<script src="js/jqcookie/jquery.cookie.js"></script>
+
+	<!-- http://www.jacklmoore.com/colorbox/ -->
+	<!-- https://github.com/jackmoore/colorbox -->
+	<script src="js/jquery.colorbox-min.js"></script>
+
+	<!-- https://gist.github.com/jonraasch/563055 -->
+	<script src="js/textsearch.js"></script>
+
+	<!-- http://www.jqueryscript.net/other/jQuery-Based-Pretty-Collapsible-JSON-Tree-Viewer.html -->
+	<script src="js/jquery.json-view.js"></script>
+
+	<!-- application js -->
+	<script src="js/app.js"></script>
+
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse">
+		<div class="container-fluid">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+
+			<a class="navbar-brand" rel="home" href="#" title="Buy Sell Rent Everyting">
+			    <img src="images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
+					DPDP
+			</a>
+			</div>
+
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			
+			<div class="pull-right navbar-form">
+				<div class="form-group">
+					<input id="text-search" type="text" class="form-control" placeholder="Search" style="width:500px;" value="mdpLog.behavior.behaviorData.target.@bc_id=16781315">
+					<button class="btn btn-default" id="btn-search">Search</button>
+				</div>
+			</div>
+		</div><!-- /.container-fluid -->
+	</nav>
+
+
+	<div class="float-div"><button class="btn btn-xs btn-primary float-button" id="btn_toggle_tree"><small>&lt;</small></button></div>
+	
+	<div class="container-fluid">
+			<div class="col-xs-4 show" id="left_pane">
+				<div class="row">
+					<div class="col-xs-12">
+						<div id="div-history">
+							<table class="table table-condensed table-striped" id="historyTable">
+								<thead>
+									<tr>
+										<th>Query History</th>
+										<th>Count</th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-xs-8" id="editor_pane">
+				<h4 id="h3_category_title"></h3>
+				<div id="jsonView"></div>
+			</div>
+		
+		<footer>
+			<div class='col-xs-12' id="div_footer">
+				<hr>
+				<p class='text-right'>
+				<small>design by ikko</small>
+				</p>
+			</div>
+		</footer>
+</body>
+<script type="text/javascript">
+
+</script>
+<!-- 
+mdpLog.behavior.behaviorData.target.@bc_id=16781315
+
+
+http://localhost:28017/MDP/behaviorCollection/?filter_mdpLog.behavior.behaviorData.target.@bc_id=16781315
+
+mdpLog.targetSample.file.md5=0d881c8d165ed96d0b929b8e7e8c0242 -->

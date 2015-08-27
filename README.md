@@ -98,11 +98,10 @@
       then run: `$ sudo service apache2 restart`
 
 
- * ## Behavior JSON Migration
-    - use `mongoimport`:
-      ```
-      $ mongoimport --db=MDP behavior.json
-      ```
+  * ## Behavior JSON Migration
+    ```
+    $ mongoimport --db=MDP behavior.json
+    ```
 
 
 # Start Web Server

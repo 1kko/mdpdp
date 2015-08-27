@@ -88,7 +88,7 @@
     - For DEMO, you may just import things as follows
       ```
       $ mysql -uroot -p < CREATEUSER.sql
-      $ mysql -uroot -p < MEDDB.sql
+      $ mysql -uroot -D MEDDB -p < MEDDB.sql
       ```
     - To increase php max upload file size, change to following values in `/etc/php5/apache2/php.ini` 
       ```
@@ -97,7 +97,12 @@
       ```
       then run: `$ sudo service apache2 restart`
 
-    
+ * ## Behavior JSON Migration
+    - use `mongoimport`
+      ```
+      $ mongoimport --db=MDP behavior.json
+      ```
+
 
 # Start Web Server
 just run `$ ./startweb.py`

@@ -73,7 +73,9 @@
 # Data Migration
 **WARNING** You might want to drop your collection **AND** table before doing this.
   * ## XML file Migration
-    `$ ./importer.py <dir/path/to/xmls>`
+    ```
+    $ ./importer.py <dir/path/to/xmls>
+    ```
 
 
   * ## SQL file Migration
@@ -90,7 +92,8 @@
       $ mysql -uroot -p < CREATEUSER.sql
       $ mysql -uroot -D MEDDB -p < MEDDB.sql
       ```
-    - To increase php max upload file size, change to following values in `/etc/php5/apache2/php.ini` 
+    - To increase php max upload file size, change to following values in `/etc/php5/apache2/php.ini`:
+
       ```
       post_max_size = 1024M
       upload_max_filesize = 1024M

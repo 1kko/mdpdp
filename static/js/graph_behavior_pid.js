@@ -80,7 +80,7 @@ function drawPidGraph(behaviorData, CSStarget, width, height, pathDrawType) {
                 default:
                     group=7;
                     name=category+"Undefined Type";
-                    console.log("Undefined Type", d);
+                    // console.log("Undefined Type", d);
                     break;
 
             }
@@ -89,9 +89,10 @@ function drawPidGraph(behaviorData, CSStarget, width, height, pathDrawType) {
             target_pid=behaviorData[i].target.pid;
             type=behaviorData[i].target["@category"];
             refinedData.push({"idx": i, "name": name, "source":source_pid, "target":target_pid, "type":type, "group":group});
-        } else {
-            console.log(behaviorData[i]);
-        }
+        } 
+        // else {
+        //     console.log(behaviorData[i]);
+        // }
     };
 
     // generation of nodes and process links
@@ -120,9 +121,10 @@ function drawPidGraph(behaviorData, CSStarget, width, height, pathDrawType) {
         var idx=getIndexOfNode(behaviorLinks[i].source);
         if (idx!==null) {
             links.push({"source":idx, "target":i, "value":2});
-        } else {
-            console.log("idx",idx,behaviorLinks[i]);
         }
+        // else {
+        //     console.log("idx",idx,behaviorLinks[i]);
+        // }
     };
 
     // merge together.

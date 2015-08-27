@@ -257,7 +257,7 @@
                         /// GRAPH HERE ///
                         graphWidth=$('#jsonChartArea').width()-30 //-$('.float-div').width();
                         graphHeight=$(window).height()-150 // -$('nav').height()-$('div#btnrow').height();
-                        console.log("width",graphWidth, "height", graphHeight);
+                        // console.log("width",graphWidth, "height", graphHeight);
                         drawPidGraph(data.mdpLog.behavior.behaviorData, "#jsonChartArea", graphWidth, graphHeight, "linear");
                     });
 

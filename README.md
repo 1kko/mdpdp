@@ -3,7 +3,8 @@
   - ## Packages
     - ### Installation
 
-      ```$ sudo apt-get install python-mysqldb python-pip
+      ```
+      $ sudo apt-get install python-mysqldb python-pip
       $ sudo apt-get install mariadb-server mariadb-common mariadb-client
       $ sudo pip install pymongo flask
       ```
@@ -13,7 +14,8 @@
 
       > http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
   
-      ```$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+      ```
+      $ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
       $ echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
       $ sudo apt-get update
       $ sudo apt-get install -y mongodb-org
@@ -22,7 +24,8 @@
 
     - ### Configuration
       Pin this installation. (no further upgrade)
-        ```echo "mongodb-org hold" | sudo dpkg --set-selections
+        ```
+        echo "mongodb-org hold" | sudo dpkg --set-selections
         echo "mongodb-org-server hold" | sudo dpkg --set-selections
         echo "mongodb-org-shell hold" | sudo dpkg --set-selections
         echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
@@ -80,16 +83,16 @@
       3. Enter following:
          * skip rows:1
          * Type: CSV
-         * Column Names: MD5_Key,File_Name,Result_Number,Virus_Name,AV_Scan,MDP_Rule,Sign_Credit,REPORT_PC_Count,Saved_Size,File_Tag,CTIME
+         * Column Names: `MD5_Key,File_Name,Result_Number,Virus_Name,AV_Scan,MDP_Rule,Sign_Credit,REPORT_PC_Count,Saved_Size,File_Tag,CTIME`
 
     - For DEMO, you may just import things as follows
-      ```$ mysql -uroot -p < CREATEUSER.sql
+      ```
+      $ mysql -uroot -p < CREATEUSER.sql
       $ mysql -uroot -p < MEDDB.sql
       ```
-
-
-    - To increase php max upload file size, change to following values in `/etc/php5/apache2/php.ini`
-      ```post_max_size = 1024M
+    - To increase php max upload file size, change to following values in `/etc/php5/apache2/php.ini` 
+      ```
+      post_max_size = 1024M
       upload_max_filesize = 1024M
       ```
       then run: `$ sudo service apache2 restart`
@@ -107,7 +110,8 @@ use web browser, go to url: **http://localhost:5000**
 To increase search speed, it's better to create index in mongodb.
 However, creating index may take long time.
 
-```$ mongo
+```
+$ mongo
 MongoDB shell version: 3.0.4
 connecting to: test
 > 

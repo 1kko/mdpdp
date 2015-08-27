@@ -227,7 +227,16 @@
                 },
                 success: function(data) {
                     notify.update({'message':'Rendering Data'});
-                    $('#jsonView').html("").jsonView(data);
+                    $('#jsonView').html("");
+                    $('#jsonView').append(
+                        '<div class="row" id="btnrow">'+
+                            '<button class="btn btn-primary" id="btnDrawChart">'+
+                                'Chart/Tree'+
+                            '</button>'+
+                        '</div>'+
+                        '<div id="jsonChartArea">'+
+                        '</div>'
+                    ).jsonView(data);
 
                     $('#tableView').hide();
                     $('#jsonView').show();
@@ -238,7 +247,22 @@
                         // console.log(q,v);
                         $('#text-search').val(q+"="+v);
                         $('#btn-search').click();
-                    });                             
+                    });
+
+                    $('#jsonChartArea').hide();
+                    $('#btnDrawChart').on('click', function(){
+                        $('.json-view').toggle()
+                        $('#jsonChartArea').html("").toggle();
+
+                        /// GRAPH HERE ///
+                        graphWidth=$('#jsonChartArea').width()-30 //-$('.float-div').width();
+                        graphHeight=$(window).height()-150 // -$('nav').height()-$('div#btnrow').height();
+                        console.log("width",graphWidth, "height", graphHeight);
+                        drawPidGraph(data.mdpLog.behavior.behaviorData, "#jsonChartArea", graphWidth, graphHeight, "linear");
+                    });
+
+
+
 
                     notify.update({'type':'success','message':'Data load successful'});
                     setTimeout(function() { notify.close();},1500);

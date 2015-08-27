@@ -43,3 +43,56 @@ body {
     max-width: 95%;
     height: auto;
 }
+
+
+/***** for D3 Chart ******/
+
+/* when use Circular, please disable until END Mark */
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+/* until here END Mark */
+
+path.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 1.5px;
+}
+
+marker#licensing {
+    fill: green;
+}
+
+path.link.licensing {
+    stroke: green;
+}
+
+path.link.resolved {
+    stroke-dasharray: 0,2 1;
+}
+
+circle {
+    fill: #ccc;
+    stroke: #333;
+    stroke-width: 1.5px;
+}
+
+text {
+    font-family: sans-serif;
+    font-size: 10px;
+    align: center;
+    fill: #bbb;
+    pointer-events: none;
+}
+
+text.shadow {
+    stroke: #fff;
+    stroke-width: 3px;
+    stroke-opacity: .8;
+}

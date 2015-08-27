@@ -97,8 +97,9 @@
       ```
       then run: `$ sudo service apache2 restart`
 
+
  * ## Behavior JSON Migration
-    - use `mongoimport`
+    - use `mongoimport`:
       ```
       $ mongoimport --db=MDP behavior.json
       ```

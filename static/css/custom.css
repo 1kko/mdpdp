@@ -2,13 +2,24 @@
     position:fixed;
     /*left:550px;*/
     left:0px;
-    top:300px;
+    top:65px;
 }
 
 .float-leftpane {
-    position: fixed;
-    left:30px;
+position: fixed;
+/*left:30px;
     top:60px;
+    overflow: auto;
+    overflow-y: scroll;*/
+}
+
+/*div .editor_pane {
+    overflow-y:scroll;
+}
+*/
+div #andQueryView {
+    overflow-y: scroll;
+    height:60px;
 }
 
 body {

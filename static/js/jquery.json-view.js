@@ -228,7 +228,7 @@
         return genBlock(json);        
     };
 
-    return $.fn.jsonView = function(json, options) {
+    var jsonview = function(json, options) {
         var $this = $(this);
 
         options = $.extend({}, {
@@ -248,5 +248,5 @@
 
         return $this;
     };
-
+    return $.fn.jsonView=jsonview;
 })(jQuery);

@@ -3,16 +3,111 @@
 # coding=utf-8
 
 from flask import Flask, render_template, request #, url_for
-import pymongo, json, MySQLdb
+import pymongo, json
 from bson import json_util
+from peewee import *
+from playhouse.pool import MySQLDatabase
 
 connection=pymongo.MongoClient("localhost",27017)
 db=connection.MDP
 collection=db.behavior
 count=0
 
-rdb=MySQLdb.connect('localhost','asduser03','qwe123','MEDDB')
-cursor=rdb.cursor()
+
+database = MySQLDatabase('MEDDB', **{'password': 'qwe123', 'user': 'asduser03'})
+database.get_conn().ping(True)
+
+class UnknownField(object):
+    pass
+
+class BaseModel(Model):
+    class Meta:
+        database = database
+
+class MedFile(BaseModel):
+    av_scan = TextField(db_column='AV_Scan')
+    ctime = DateTimeField(db_column='CTIME')
+    file_name = TextField(db_column='File_Name')
+    file_tag = CharField(db_column='File_Tag')
+    md5_key = CharField(db_column='MD5_Key', index=True)
+    mdp_rule = TextField(db_column='MDP_Rule')
+    report_pc_count = IntegerField(db_column='REPORT_PC_Count')
+    result_number = TextField(db_column='Result_Number')
+    saved_size = IntegerField(db_column='Saved_Size')
+    sign_credit = IntegerField(db_column='Sign_Credit')
+    virus_name = TextField(db_column='Virus_Name')
+    idx = PrimaryKeyField()
+    class Meta:
+        db_table = 'med_file'
+
+
+def medfileSearch(md5sumlist, search, sort, order, limit, offset):
+
+	# print "md5sumlist:", ', '.join(md5sumlist)[0:67], "...", ', '.join(md5sumlist)[-68:]
+	# print "md5sumlist count:", len(md5sumlist)
+	# print "search:", search
+	# print "sort:", sort
+	# print "order:", order
+	# print "limit:", limit
+	# print "offset:", offset
+
+	if search!=None:
+		queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist) & \
+			(\
+				MedFile.md5_key.contains(search) | \
+				MedFile.file_name.contains(search) | \
+				MedFile.virus_name.contains(search) | \
+				MedFile.file_tag.contains(search)
+			)\
+		)
+	else:
+		queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist))
+
+	if sort: 
+		if sort=="MD5_KEY": 
+			queryColumn=MedFile.md5_key
+		if sort=="FILE_NAME": 
+			queryColumn=MedFile.file_name
+		if sort=="RESULT_NUMBER": 
+			queryColumn=MedFile.result_number
+		if sort=="VIRUS_NAME": 
+			queryColumn=MedFile.virus_name
+		if sort=="SIGN_CREDIT": 
+			queryColumn=MedFile.sign_credit
+		if sort=="REPORT_PC_COUNT": 
+			queryColumn=MedFile.report_pc_count
+		if sort=="SAVED_SIZE": 
+			queryColumn=MedFile.saved_size
+		if sort=="FILE_TAG": 
+			queryColumn=MedFile.file_tag
+		if sort=="CTIME": 
+			queryColumn=MedFile.ctime
+			
+		if order=="desc":
+			queryResult=queryResult.order_by(queryColumn.desc())
+		else:
+			queryResult=queryResult.order_by(queryColumn.asc())
+
+	# queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist)).limit(limit).offset(offset).order_by(order)
+
+	rows=[]
+	for row in queryResult.limit(limit).offset(offset):
+		# print "row.report_pc_count:", row.report_pc_count
+		rows.append(\
+			{"MD5_KEY":row.md5_key, \
+			 "FILE_NAME": row.file_name, \
+			 "RESULT_NUMBER":row.result_number, \
+			 "VIRUS_NAME":row.virus_name,\
+			 "SIGN_CREDIT":str(row.sign_credit), \
+			 "REPORT_PC_COUNT":str(row.report_pc_count), \
+			 "SAVED_SIZE":str(row.saved_size), \
+			 "FILE_TAG":row.file_tag, \
+			 "CTIME":str(row.ctime)\
+		})
+
+	total=queryResult.count()
+	retval={'total':total, 'rows':rows}
+	return json.dumps(retval, default=json_util.default)
 
 app=Flask(__name__)
 
@@ -33,6 +128,10 @@ def postprocessor(value):
 @app.route("/")
 def mainpage():
 	return render_template('template.html')
+
+@app.route("/query/<query>/")
+def startpage(query):
+	return render_template('template.html', query=query)
 
 @app.route("/count/", methods=['POST'])
 def count():
@@ -56,6 +155,7 @@ def count_and():
 @app.route("/detail_one/", methods=['POST'])
 def detail_one():
 	query=request.form.get('query')
+	# print request.form
 	key=query.split("=")[0]
 	val=postprocessor(query.split("=")[1])
 	data=collection.find_one({key:val})
@@ -72,64 +172,68 @@ def detail_one_and():
 	data=collection.find_one({"$and":queryList})
 	return json.dumps(data, default=json_util.default)
 
-@app.route("/list/", methods=['POST'])
+@app.route("/list/", methods=['GET','POST'])
 def list():
-	query=request.form.get('query')
-	# limit=request.form.get('limit')
-	key=query.split("=")[0]
-	val=postprocessor(query.split("=")[1])
-	data=collection.find({key:val}).distinct("md5sum")
+	if request.method=="POST":
+		print "POST", request.form
+		query = request.form.get('query')
+		limit = request.form.get('limit')
+		offset= request.form.get('offset')
+		sort  = request.form.get('sort')
+		order = request.form.get('order')
+		search= request.form.get('search')
+	else:
+		print "GET", request.args
+		query = request.args.get('query')
+		limit = request.args.get('limit')
+		offset= request.args.get('offset')
+		sort  = request.args.get('sort')
+		order = request.args.get('order')
+		search= request.args.get('search')
 
-	md5sumlist=[]
-	for md5sum in data:
-		md5sumlist.append(md5sum)
+	try:
+		key=query.split("=")[0]
+		val=postprocessor(query.split("=")[1])
+	except:
+		key=query.split("%\3D")[0]
+		val=postprocessor(query.split("%\3D")[1])
 
-	sql="SELECT MD5_KEY, FILE_NAME, RESULT_NUMBER, VIRUS_NAME, SIGN_CREDIT, REPORT_PC_COUNT, SAVED_SIZE, FILE_TAG, CTIME FROM med_file WHERE MD5_KEY IN (%s) ORDER BY REPORT_PC_COUNT desc, CTIME desc"
-	# if (limit=="go_on"):
-	# 	sql=sql+" LIMIT 1001,18446744073709551615"
-	# else:
-	# 	sql=sql+" LIMIT 0,1000"
-	# sql=sql+" LIMIT "+limit
+	# data from mongodb
+	md5sumlist=collection.find({key:val}).distinct("md5sum")
+	# print "search", search
 
-	in_p=', '.join(map(lambda x: '%s', md5sumlist))
-	sql = sql % in_p
-	cursor.execute(sql, md5sumlist)
+	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
 
-	retval=[]
-	for (MD5_KEY, FILE_NAME, RESULT_NUMBER, VIRUS_NAME, SIGN_CREDIT, REPORT_PC_COUNT, SAVED_SIZE, FILE_TAG, CTIME) in cursor:
-		retval.append({"MD5_KEY":MD5_KEY, "FILE_NAME": FILE_NAME, "RESULT_NUMBER":RESULT_NUMBER, "VIRUS_NAME":VIRUS_NAME, "SIGN_CREDIT":SIGN_CREDIT, "REPORT_PC_COUNT":REPORT_PC_COUNT, "SAVED_SIZE":SAVED_SIZE, "FILE_TAG":FILE_TAG, "CTIME":str(CTIME) })
-	return json.dumps(retval, default=json_util.default)
 
-@app.route("/list/and/", methods=['POST'])
+@app.route("/list/and/", methods=['GET','POST'])
 def list_and():
-	query=request.form.getlist('query[]')
+	if request.method=="POST":
+		print "POST", request.form
+		query = request.form.getlist('query[]')
+		limit = request.form.get('limit')
+		offset= request.form.get('offset')
+		sort  = request.form.get('sort')
+		order = request.form.get('order')
+		search= request.form.get('search')
+	else:
+		print "GET", request.args
+		query = request.args.getlist('query[]')
+		limit = request.args.get('limit')
+		offset= request.args.get('offset')
+		sort  = request.args.get('sort')
+		order = request.args.get('order')
+		search= request.args.get('search')
+
+	# global cursor
+	print query
 	# limit=request.form.get('limit')
 	queryList=[]
 	for keyval in query:
 		key=keyval.split("=")[0]
 		val=postprocessor(keyval.split("=")[1])
 		queryList.append({key:val})
-	data=collection.find({"$and":queryList}).distinct("md5sum")
-
-	md5sumlist=[]
-	for md5sum in data:
-		md5sumlist.append(md5sum)
-
-	sql="SELECT MD5_KEY, FILE_NAME, RESULT_NUMBER, VIRUS_NAME, SIGN_CREDIT, REPORT_PC_COUNT, SAVED_SIZE, FILE_TAG, CTIME FROM med_file WHERE MD5_KEY IN (%s) ORDER BY REPORT_PC_COUNT desc, CTIME desc"
-	# if (limit=="go_on"):
-	# 	sql=sql+" LIMIT 1001,18446744073709551615"
-	# else:
-	# 	sql=sql+" LIMIT 0,1000"
-	# sql=sql+" LIMIT "+limit
-
-	in_p=', '.join(map(lambda x: '%s', md5sumlist))
-	sql = sql % in_p
-	cursor.execute(sql, md5sumlist)
-
-	retval=[]
-	for (MD5_KEY, FILE_NAME, RESULT_NUMBER, VIRUS_NAME, SIGN_CREDIT, REPORT_PC_COUNT, SAVED_SIZE, FILE_TAG, CTIME) in cursor:
-		retval.append({"MD5_KEY":MD5_KEY, "FILE_NAME": FILE_NAME, "RESULT_NUMBER":RESULT_NUMBER, "VIRUS_NAME":VIRUS_NAME, "SIGN_CREDIT":SIGN_CREDIT, "REPORT_PC_COUNT":REPORT_PC_COUNT, "SAVED_SIZE":SAVED_SIZE, "FILE_TAG":FILE_TAG, "CTIME":str(CTIME) })
-	return json.dumps(retval, default=json_util.default)
+	md5sumlist=collection.find({"$and":queryList}).distinct("md5sum")
+	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
 
 @app.route("/test/<mystr>")
 def testpage(mystr):
@@ -137,4 +241,4 @@ def testpage(mystr):
 	return render_template('template.html',mystr=mystr)
 
 if __name__ == "__main__":
-	app.run("127.0.0.1",debug=True)
+	app.run("0.0.0.0",debug=True)

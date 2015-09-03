@@ -102,14 +102,19 @@
 		<div class="container-fluid">
 			<!-- Brand and toggle get grouped for better mobile display -->
 			<div class="navbar-header">
-
-			<a class="navbar-brand" rel="home" href="/" title="Buy Sell Rent Everyting">
-			    <img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
-					DPDP <small style="font-size:7px;">design by ikko</small>
-			</a>
+				<a class="navbar-brand" rel="home" href="/" title="MDPDP">
+				    <img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
+						DPDP <small style="font-size:7px;">designed by ikko</small>
+				</a>
 			</div>
 
 			<!-- Collect the nav links, forms, and other content for toggling -->
+			<ul class="nav navbar-nav">
+				<li><a href="#" id="goto_enginediff_main">Dashboard</a></li>
+				<li class="active"><a href="#">Analysis</a></li>
+				<li><a href="#" id="goto_enginediff_uploader">Upload CSV</a></li>
+			</ul>
+
 			
 			<div class="pull-right navbar-form">
 				<div class="form-group">
@@ -124,41 +129,46 @@
 	<div class="float-div"><button class="btn btn-xs btn-primary float-button" id="btn_toggle_tree"><small>&lt;</small></button></div>
 	
 	<div class="container-fluid">
-		<div class="container">
-			<div class="show float-leftpane left_pane col-xs-4" id="left_pane">
-				<div class="row">
-					<div id="div-history">
+		<div class="show float-leftpane left_pane col-xs-4" id="left_pane">
+			<div class="row">
+				<div id="div-history">
+					<div id="div-history-title" class="col-xs-10">
 						<h4>Query History</h4>
-						<table class="table table-condensed table-striped" id="historyTable">
-							<thead>
-								<tr>
-									<th><i class="axi axi-highlight-remove"></i></th>
-									<th>AND</th>
-									<th>Query</th>
-									<th>Count</th>
-								</tr>
-							</thead>
-							<tbody>
-							</tbody>
-						</table>
 					</div>
-				</div>
-
-				<div class="row">
-					<h4 id="andQueryTitle">AND Query</h4>
-					<div id="andQueryView"></div>
-					<div id="andQueryCount"></div>
+					<div id="toggle_tree_chart" class="col-xs-2">
+						<input type="checkbox" id="tree_chart_toggle">
+					</div>
+					<table class="table table-condensed table-striped" id="historyTable">
+						<thead>
+							<tr>
+								<th><i class="axi axi-highlight-remove"></i></th>
+								<th>AND</th>
+								<th>Query</th>
+								<th>Count</th>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
 				</div>
 			</div>
+
+			<div class="row">
+				<h4 id="andQueryTitle">AND Query</h4>
+				<div id="andQueryView"></div>
+				<div id="andQueryCount"></div>
+			</div>
 		</div>
-		<div class="col-xs-5 left_pane"></div>
-		<div class="col-xs-7" id="editor_pane">
+		<div class="col-xs-4 left_pane"></div>
+		<div class="col-xs-8" id="editor_pane">
 			<h4 id="h3_category_title"></h3>
-			<div id="jsonView"></div>
+			<div id="jsonView" class="col-xs-12"></div>
 			<div id="tableView">
 				<table id='filelist'
 				data-show-columns="true"
 				data-pagination="true"
+				data-side-pagination="server"
+				data-page-list="[5, 10, 20, 50, 100, 200]"
 				data-search="true"
 				data-sort-name="REPORT_PC_COUNT"
 				data-sort-order="desc"
@@ -182,6 +192,30 @@
 			</div>
 		</div>
 </body>
+
+
+<script>
+$(document).ready(function(){
+	$("#goto_enginediff_main").on('click', function() {
+		url = window.location.protocol + '//' + window.location.hostname + "/enginediff/";
+		console.log("redirecting to ", url);
+		window.location.replace(url);
+	});
+
+	$("#goto_enginediff_uploader").on('click', function() {
+		url = window.location.protocol + '//' + window.location.hostname + "/enginediff/uploader.php";
+		console.log("redirecting to ", url);
+		window.location.replace(url);
+	});
+
+	// flask if / endif
+	{% if query %}
+	$('#text-search').val("{{query}}");
+	$('#btn-search').click();
+	{% endif %}
+});
+
+</script>
 <!-- 
 mdpLog.behavior.behaviorData.target.@bc_id=16781315
 

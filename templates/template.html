@@ -103,7 +103,7 @@
 			<!-- Brand and toggle get grouped for better mobile display -->
 			<div class="navbar-header">
 				<a class="navbar-brand" rel="home" href="/" title="MDPDP">
-				    <img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
+					<img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
 						DPDP <small style="font-size:7px;">designed by ikko</small>
 				</a>
 			</div>
@@ -113,31 +113,30 @@
 				<li><a href="#" id="goto_enginediff_main">Dashboard</a></li>
 				<li class="active"><a href="#">Analysis</a></li>
 				<li><a href="#" id="goto_enginediff_uploader">Upload CSV</a></li>
-			</ul>
-
-			
-			<div class="pull-right navbar-form">
-				<div class="form-group">
-					<input id="text-search" type="text" class="form-control" placeholder="Search" style="width:500px;" value="mdpLog.behavior.behaviorData.target.@bc_id=16781315">
-					<button class="btn btn-primary" id="btn-search">Search</button>
-				</div>
-			</div>
-		</div><!-- /.container-fluid -->
-	</nav>
-
-
-	<div class="float-div"><button class="btn btn-xs btn-primary float-button" id="btn_toggle_tree"><small>&lt;</small></button></div>
-	
-	<div class="container-fluid">
-		<div class="show float-leftpane left_pane col-xs-4" id="left_pane">
-			<div class="row">
-				<div id="div-history">
-					<div id="div-history-title" class="col-xs-10">
-						<h4>Query History</h4>
-					</div>
-					<div id="toggle_tree_chart" class="col-xs-2">
+				<li>
+					<div id="toggle_tree_chart" class="col-xs-2" style="margin-top:14px;">
 						<input type="checkbox" id="tree_chart_toggle">
 					</div>
+				</li>
+				<li>
+					<div class="navbar-form pull-right">
+						<input id="text-search" type="text" class="form-control" placeholder="Search" style="width:70%;" value="mdpLog.behavior.behaviorData.target.@bc_id=16781315">
+						<button class="btn btn-primary" id="btn-search">Search</button>
+					</div>
+				</li>
+			</ul>
+		</div><!-- /.container-fluid -->
+
+			
+	</nav>
+
+	
+	<div class="container-fluid">
+		<div class="show" id="left_pane">
+			<div id="dragbar"></div>
+			<div id="div-history">
+				<div id="div-history-title">
+					<h4>Query History</h4>
 					<table class="table table-condensed table-striped" id="historyTable">
 						<thead>
 							<tr>
@@ -151,19 +150,48 @@
 						</tbody>
 					</table>
 				</div>
-			</div>
-
-			<div class="row">
 				<h4 id="andQueryTitle">AND Query</h4>
-				<div id="andQueryView"></div>
 				<div id="andQueryCount"></div>
+				<div id="andQueryView"></div>
 			</div>
 		</div>
-		<div class="col-xs-4 left_pane"></div>
-		<div class="col-xs-8" id="editor_pane">
+		<div id="editor_pane">
 			<h4 id="h3_category_title"></h3>
 			<div id="jsonView" class="col-xs-12"></div>
 			<div id="tableView">
+				<button class="btn btn-primary" id="find_common" data-toggle="modal" data-target="#myModal">Find Common</button>
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title" id="myModalLabel">Common Key Values</h4>
+							</div>
+							<div class="modal-body" id="myModalBody">
+								<table id="myModalTable"
+								data-striped="true"
+								data-row-style="rowStyle"
+								data-click-to-select="true"
+								data-maintain-selected="true"
+								>
+
+									<thead>
+										<tr>
+											<th data-visible="true" data-checkbox="true" data-field="selection"></th>
+											<th data-visible="true" data-sortable="true" data-field="key">Key</th>
+											<th data-visible="true" data-sortable="true" data-field="value">Value</th>
+										</tr>
+									</thead>
+								</table>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal" id="btnCloseModal">Close</button>
+								<button type="button" class="btn btn-primary" id="btnSave">Save changes</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<table id='filelist'
 				data-show-columns="true"
 				data-pagination="true"
@@ -174,9 +202,13 @@
 				data-sort-order="desc"
 				data-striped="true"
 				data-row-style="rowStyle"
-				data-page-size="50">
+				data-page-size="50"
+				data-click-to-select="true"
+				data-maintain-selected="true"
+				>
 					<thead>
 					<tr>
+						<th data-visible="true"  data-checkbox="true" data-field="sel">S</th>
 						<th data-sortable="true" data-visible="true"  data-field="MD5_KEY">MD5</th>
 						<th data-sortable="true" data-visible="false" data-field="FILE_NAME">File Name</th>
 						<th data-sortable="true" data-visible="false" data-field="RESULT_NUMBER">Result</th>
@@ -207,6 +239,38 @@ $(document).ready(function(){
 		console.log("redirecting to ", url);
 		window.location.replace(url);
 	});
+
+
+	$('#text-search').on('focusin', 
+	function() {
+		W=$(this).parent().parent().width();
+		$(this).animate({width:W},300).css('word-break','break-all');
+	}).on('focusout',
+	function() {
+		$(this).animate({width:'70%', height:'38px'},200);
+	});
+
+	// var i = 0;
+	$('#dragbar').mousedown(function(e){
+		  
+		e.preventDefault();
+			// $('#mousestatus').html("mousedown" + i++);
+			$(document).mousemove(function(e){
+			// $('#position').html(e.pageX +', '+ e.pageY);
+			$('#left_pane').css("width",e.pageX+2);
+			$('#editor_pane').css("left",e.pageX+2+30);
+		})
+		   // console.log("leaving mouseDown");
+	});
+	$(document).mouseup(function(e){
+		// $('#clickevent').html('in another mouseUp event' + i++);
+		$(document).unbind('mousemove');
+	});
+
+	$('#dragbar').trigger('mousedown').trigger('mouseup');
+
+
+
 
 	// flask if / endif
 	{% if query %}

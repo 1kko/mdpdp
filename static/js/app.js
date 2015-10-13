@@ -110,13 +110,13 @@ $(document).ready(function() {
         }).on('page-change.bs.table', function(){
             notify=$.notify({'message':"Loading Data..."},{'type':'info'});
         });
-        $('#filelist').off('click-row.bs.table').on('click-row.bs.table', function(e, row, $element) {
-            query="md5sum="+row.MD5_KEY;
-            append_query_history(query, 1, false);
-            addEventsToQueryHistory();
-            // query_count(query);
-            // show_detail_one(query);
-        });
+        // $('#filelist').off('click-row.bs.table').on('click-row.bs.table', function(e, row, $element) {
+        //     query="md5sum="+row.MD5_KEY;
+        //     append_query_history(query, 1, false);
+        //     addEventsToQueryHistory();
+        //     // query_count(query);
+        //     // show_detail_one(query);
+        // });
     }
 
 
@@ -185,8 +185,8 @@ $(document).ready(function() {
         if (query) {
             
             disp_query=query;
-            if (query.length>=40) {
-                disp_query="..."+query.substr(query.length-40,query.length);
+            if (query.length>=32) {
+                disp_query="..."+query.substr(query.length-32,query.length);
             }
 
             $('#historyTable>tbody').append(
@@ -198,17 +198,18 @@ $(document).ready(function() {
                         '<input type="checkbox" class="andCheck" name="andCheck" '+checked+' >'+
                     '</td>'+
                     '<td>'+
-                        '<a href="#/" class="usr-dbquery-detail" alt="'+query+'">'+disp_query+'</a>'+
+                        '<a href="#/" class="usr-dbquery-detail" alt="'+query+'" title="'+query+'">'+disp_query+'</a>'+
                     '</td>'+
                     '<td align="right">'+
                         '<a href="#/" class="usr-dbquery-list" alt="'+count+'">'+count+'</a>'+
                     '</td>'+
                 '</tr>'
             );
-            $('#historyTable').bootstrapTable({'height':$(window).height()-200});
-            $(window).on('resize', function() {
-                $('#historyTable').bootstrapTable('resetView',{'height':$(window).height()-200});
-            });
+            // $('#historyTable').bootstrapTable({'height':$(window).height()-200});
+            $('#historyTable').bootstrapTable();
+            // $(window).on('resize', function() {
+            //     $('#historyTable').bootstrapTable('resetView',{'height':$(window).height()-200});
+            // });
             storeToLocalStorage(stor_key);
         }
     }
@@ -311,6 +312,19 @@ $(document).ready(function() {
 
     $("#tree_chart_toggle").bootstrapSwitch({'size':'mini', 'onText':'Chart', 'offText':'Tree', 'onColor':'primary', 'offColor':'info'});
 
+    $('#dragbar').mousedown(function(e){
+            e.preventDefault();
+            // $('#mousestatus').html("mousedown" + i++);
+            $(document).mousemove(function(e){
+            // $('#position').html(e.pageX +', '+ e.pageY);
+            pageWidth=e.pageX+2;
+            columnWidth=$('.usr-dbquery-detail').width();
+            $('#editor_pane').css("left",e.pageX+2+30);
+        })
+           // console.log("leaving mouseDown");
+    });
+
+
     $('#btn_toggle_tree').on('click',function() {
         if ($('.left_pane').hasClass('show'))
         {
@@ -331,6 +345,50 @@ $(document).ready(function() {
             $(this).text("<");
         }
     });
+
+    $('#find_common').on('click', function() {
+        var selections=$('#filelist').bootstrapTable('getSelections');
+        var md5array=[];
+        for ( i in selections ) {
+            console.log(selections[i].MD5_KEY);
+            md5array.push(selections[i].MD5_KEY);
+        }
+
+        var jsonString=
+        $.ajax({
+            type: "POST",
+            url: "/find/common/",
+            data: {
+                "query": md5array
+            },
+            cache: false,
+            dataType: 'json',
+            success: function(data) {
+                // console.log(data);
+                tbData=[]
+                for (var key in data) {
+                    for (var i in data[key]) {
+                        tbData.push({'key':key, 'value':data[key][i]})
+                    }
+                }
+                $('#myModalTable').bootstrapTable({data:tbData});
+
+                $('#btnCloseModal').on('click',function(){
+                    $('#myModalTable').bootstrapTable('destroy');
+                });
+                $('#btnSave').on('click', function(){
+                    table=$('#myModalTable').bootstrapTable('getSelections');
+                    for (var i in table) {
+                        query_count(table[i]['key']+"="+table[i]['value']);
+                    }
+                    $('#btnCloseModal').click();
+                });
+            }
+        });
+
+    });
+
+
 
     // After Page Load, trigger "change" event to historyTable.
     $('#historyTable input[name=andCheck]').triggerHandler('change');

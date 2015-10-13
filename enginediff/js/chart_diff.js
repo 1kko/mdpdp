@@ -13,7 +13,7 @@ function loadDiffChart(Diff_data_array) {
 			type: 'column',
 			backgroundColor: null,
 			borderWidth: null,
-			zoomType: 'xy',
+			zoomType: 'x',
 			style: {
 				color: '#fff'
 			}
@@ -44,7 +44,16 @@ function loadDiffChart(Diff_data_array) {
 				style: {
 					color: '#fff'
 				}
-			}
+			},
+			itemHiddenStyle:{
+				color:'#222'
+			},
+			itemHoverStyle:{
+				color:'#555'
+			},
+			itemStyle: {
+				color:'#ccc'
+			},
 		},
 		yAxis: {
 			title: { text: null },
@@ -52,7 +61,6 @@ function loadDiffChart(Diff_data_array) {
 		},
 		tooltip: {
 			crosshairs: true,
-
 		},
 		plotOptions: {
 			areaspline: {
@@ -60,10 +68,8 @@ function loadDiffChart(Diff_data_array) {
 				dataLabels: {
 					enabled: true,
 					color: '#eee',
-					symbol: 'circle'
-				},
-				lineColor: 'rgba(91,192,222,0.3)',
-				fillColor: 'rgba(91,192,222,0.3)',
+					symbol: 'circle',
+				}
 			},
 			spline: {
 				dataLabels: {
@@ -107,20 +113,38 @@ function loadDiffChart(Diff_data_array) {
 			}
 		},
 		series: [{
-			name: 'Total',
-			type: 'areaspline',
-			data: Diff_data_array.Total,
-			zIndex: 0,
-			lineWidth: 0,
+		// 	name: 'Total',
+		// 	type: 'areaspline',
+		// 	data: Diff_data_array.Total,
+		// 	zIndex: 0,
+		// 	lineWidth: 0,
 
+		// 	marker: {
+		// 		fillColor: 'white',
+		// 		lineWidth: 1,
+		// 		lineColor: '#ccc'
+		// 	},
+		// 	color: 'rgba(91,192,222,0.3)',
+		// 	lineColor: 'rgba(91,192,222,0.3)',
+		// 	fillColor: 'rgba(91,192,222,0.3)',
+
+		// }, { 
+			name: 'Malicious',
+			type: 'areaspline',
+			data: Diff_data_array.TotalMalicious,
+			visible: false,
+			zIndex: 1,
+			lineWidth: 0,
 			marker: {
 				fillColor: 'white',
 				lineWidth: 1,
-				lineColor: '#ccc'
+				lineColor: 'rgba(192,0,50,0.3)'
 			},
-			color: 'rgba(91,192,222,0.3)',
+			color: 'rgba(192,0,50,0.3)',
+			lineColor: 'rgba(192,0,50,0.3)',
+			fillColor: 'rgba(192,0,50,0.3)',
 
-		}, { 
+		}, {
 /*			name: 'DICA',
 			data: Diff_data_array.DICA,
 			zIndex: 4,
@@ -147,10 +171,12 @@ function loadDiffChart(Diff_data_array) {
 		}, { 
 */			name: 'V3',
 			data: Diff_data_array.V3,
+			visible: false,
 			zIndex: 2,
 			lineWidth: 2,
 			lineColor: Highcharts.getOptions().colors[2],
 			opacity: 0.3,
+			color: Highcharts.getOptions().colors[2],
 			marker: {
 				fillColor: 'white',
 				lineWidth: 1,
@@ -171,15 +197,76 @@ function loadDiffChart(Diff_data_array) {
 		}, { 
 */			name: 'MDP_VM',
 		 	data: Diff_data_array.MDP_VM,
+		 	visible: false,
 		 	zIndex: 1,
 		 	lineWidth: 2,
 		 	lineColor: Highcharts.getOptions().colors[4],
+		 	color: Highcharts.getOptions().colors[4],
 		 	opacity: 0.3,
 		 	marker: {
 		 		fillColor: 'white',
 		 		lineWidth: 1,
 		 		lineColor: Highcharts.getOptions().colors[4]
 		 	}
+		}, { 
+			name: 'V3.%',
+			data: Diff_data_array.V3_percent,
+			zIndex: 2,
+			lineWidth: 2,
+			lineColor: Highcharts.getOptions().colors[2],
+			opacity: 0.3,
+			color: Highcharts.getOptions().colors[2],
+			marker: {
+				fillColor: 'white',
+				lineWidth: 1,
+				lineColor: Highcharts.getOptions().colors[2]
+			},
+			dataLabels:{
+				format: '{y:.2f}',
+			}
+		}, {
+			name: 'MDP_VM.%',
+		 	data: Diff_data_array.MDP_VM_percent,
+		 	zIndex: 1,
+		 	lineWidth: 2,
+		 	lineColor: Highcharts.getOptions().colors[4],
+		 	color: Highcharts.getOptions().colors[4],
+		 	opacity: 0.3,
+		 	marker: {
+		 		fillColor: 'white',
+		 		lineWidth: 1,
+		 		lineColor: Highcharts.getOptions().colors[4]
+		 	},
+		 	dataLabels:{
+		 		format: '{y:.2f}',
+		 	}
 		}]
+	});
+
+	function series(name) {
+		var chart=$('#chart_EngineDiff').highcharts().series;
+		for (var i=0; i<$('#chart_EngineDiff').highcharts().series.length;i++) {
+			// console.log(chart[i].name, name);
+			if (chart[i].name===name) {
+				// console.log(chart[i].name);
+				return chart[i];
+			}
+		}
+	}
+
+	$('#toggle_value').on('click', function(e) {
+		if ($(this).is(':checked')) {
+			series('MDP_VM').show();
+			series('V3').show();
+			series('Malicious').show();
+			series('MDP_VM.%').hide();
+			series('V3.%').hide();
+		} else {
+			series('MDP_VM').hide();
+			series('V3').hide();
+			series('Malicious').hide();
+			series('MDP_VM.%').show();
+			series('V3.%').show();
+		}
 	});
 };

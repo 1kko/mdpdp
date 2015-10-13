@@ -42,7 +42,8 @@ include_once("common/lib.php");
 		</div>
 		<div class="row">
 			<div class="col-xs-12">
-			<h3><i class="axi axi-settings-input-component"></i> Engine Diff Chart</h3>
+			<h3><i class="axi axi-settings-input-component"></i> Engine Diff Chart 
+			       <small><input type="checkbox" id="toggle_value"> Show values</small></h3>
 				<div id="chart_EngineDiff"></div>
 			</div>
 		</div>
@@ -52,11 +53,11 @@ include_once("common/lib.php");
 					data-show-columns="true"
 					data-pagination="true"
 					data-search="true"
-					data-sort-name="Date"
+					data-sort-name="Date, Severity"
 					data-sort-order="desc"
 					data-striped="true"
-					data-page-size="50"
-					data-page-list="[10,25,50,100,All]"
+					data-page-size="100"
+					data-page-list="[100,200,500,1000,All]"
 					data-row-style="rowStyle">
 					<thead>
 						<tr>
@@ -108,22 +109,30 @@ function mdpdpQuery(value, row, index) {
 }
 
 function rowStyle(row, index) {
-	if (   (row.DICA_Result=="MALICIOUS")
-		|| (row.Heimdal_Result=="MALICIOUS")
-		|| (row.V3_Result=="MALICIOUS")
-		|| (row.VirusTotal_Result=="MALICIOUS")
+   if ( 
+		   (row.V3_Result=="MALICIOUS")
+		// && (row.DICA_Result=="MALICIOUS")
+		// && (row.Heimdal_Result=="MALICIOUS")
+		// && (row.VirusTotal_Result=="MALICIOUS")
+		&& (row.MDP_VM_Result=="MALICIOUS")
+	) {
+		return { classes: 'info' };
+	} else if (
+		   (row.V3_Result=="MALICIOUS")
+		// || (row.DICA_Result=="MALICIOUS")
+		// || (row.Heimdal_Result=="MALICIOUS")
+		// || (row.VirusTotal_Result=="MALICIOUS")
 		|| (row.MDP_VM_Result=="MALICIOUS")
-	) return {
-		classes: 'danger'
-	};
-
-	if (   (row.DICA_Result=="SUSPICIOUS")
-		|| (row.Heimdal_Result=="SUSPICIOUS")
-		|| (row.V3_Result=="SUSPICIOUS")
-		|| (row.VirusTotal_Result=="SUSPICIOUS")
-	) return {
-		classes: 'warning'
-	};
+	) {
+		return { classes: 'warning' };
+	} else if (
+		   (row.V3_Result=="SUSPICIOUS")
+		// || (row.DICA_Result=="SUSPICIOUS")
+		// || (row.Heimdal_Result=="SUSPICIOUS")
+		// || (row.VirusTotal_Result=="SUSPICIOUS")
+	) {
+		return { classes: 'danger' };
+	}
 
 
 	return {};
@@ -134,6 +143,7 @@ function refresh(daterange) {
 		url:"fetch.php?type=EngineDiff&daterange="+daterange,
 		dataType:"json",
 		success: function(data) {
+			// console.log(data);
 			loadDiffChart(data);
 		}
 	});
@@ -193,7 +203,7 @@ $(document).ready(function() {
 		function (start, end) {
 			var range=start.format(dateFormat)+" - "+end.format(dateFormat)
 			refresh(range);
-			console.log(range);
+			// console.log(range);
 		}
 	);
 

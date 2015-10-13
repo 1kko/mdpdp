@@ -2,11 +2,17 @@
 # -*- coding: UTF-8 -*-
 # coding=utf-8
 
-from flask import Flask, render_template, request #, url_for
+from flask import Flask, render_template, request, url_for
+import os
+from werkzeug import secure_filename
 import pymongo, json
 from bson import json_util
 from peewee import *
 from playhouse.pool import MySQLDatabase
+import importer
+import threading
+
+from reversediff import findCommon
 
 connection=pymongo.MongoClient("localhost",27017)
 db=connection.MDP
@@ -15,7 +21,6 @@ count=0
 
 
 database = MySQLDatabase('MEDDB', **{'password': 'qwe123', 'user': 'asduser03'})
-database.get_conn().ping(True)
 
 class UnknownField(object):
     pass
@@ -43,6 +48,7 @@ class MedFile(BaseModel):
 
 def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 
+	database.get_conn().ping(True)
 	# print "md5sumlist:", ', '.join(md5sumlist)[0:67], "...", ', '.join(md5sumlist)[-68:]
 	# print "md5sumlist count:", len(md5sumlist)
 	# print "search:", search
@@ -110,6 +116,14 @@ def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 	return json.dumps(retval, default=json_util.default)
 
 app=Flask(__name__)
+UPLOAD_FOLDER = './tmp'
+app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
+
+
+def allowed_file(filename):
+	ALLOWED_EXTENSIONS = set(['zip'])
+	return '.' in filename and filename.rsplit('.',1)[1] in ALLOWED_EXTENSIONS
+
 
 def postprocessor(value):
 	try:
@@ -234,6 +248,32 @@ def list_and():
 		queryList.append({key:val})
 	md5sumlist=collection.find({"$and":queryList}).distinct("md5sum")
 	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
+
+@app.route("/find/common/", methods=['GET','POST'])
+def find_intersaction_keyval():
+	if request.method=="POST":
+		# print "POST", request.form
+		query = request.form.getlist('query[]')
+		return json.dumps(findCommon(query), default=json_util.default)
+
+@app.route("/remoteupload/zip/", methods=['GET','POST'])
+def remove_update_zip():
+	try:
+		if request.method=="POST":
+			file=request.files['file']
+			if file and allowed_file(file.filename):
+				filename=secure_filename(file.filename)
+				filepath=os.path.join(app.config['UPLOAD_FOLDER'], filename)
+				file.save(filepath)
+				print "filename: %s" % (filepath)
+				import_thread=threading.Thread(target=importer.startImportZip, args=(filepath,))
+				import_thread.start()
+				return "Upload successful. Started to import zipfile"
+		else:
+			return "Failed"
+	except Exception as e:
+		return "Failed: %s" % (e)
+
 
 @app.route("/test/<mystr>")
 def testpage(mystr):

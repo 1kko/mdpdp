@@ -101,10 +101,62 @@ if (!function_exists("getArrayPerDay")){
 
 		$chartCount=array();
 		foreach($uniqueDates as $uniqueDate){
-			$cnt=$mongoCollection->find(array('$and'=>array(
-				$filter,
-				array('Date'=>$uniqueDate)
-			)))->count();
+			$cnt=sizeof($mongoCollection->distinct(
+				'File.MD5',
+				array('$and'=>array(
+					$filter,
+					array('Date'=>$uniqueDate)
+			))));
+		
+			$chartNsec=$uniqueDate->sec*1000;
+
+			array_push($chartCount,array($chartNsec, $cnt));
+
+		}
+		//$jsonChartCount=json_encode($chartCount);
+		return $chartCount;
+	}
+}
+
+
+if (!function_exists("getTotalMaliciousCountArrayPerDay")){
+	function getTotalMaliciousCountArrayPerDay($filter, $daterange=Null) {
+		global $mongoCollection;
+		$startDate = daterangeMongo($daterange)['mongo']['start'];
+		$endDate = daterangeMongo($daterange)['mongo']['end'];
+
+		$records=$mongoCollection->find(
+			array('$and'=>
+				array(
+					$filter,
+					array('Date'=>
+						array(
+							'$gte'=>$startDate, '$lte'=>$endDate
+						)
+					)
+				)
+			)
+		)->sort(array('Date'=>1));
+
+		$dateList=array();
+		foreach($records as $r)
+		{
+			array_push($dateList, $r['Date']);
+		}
+		$uniqueDates=array_unique($dateList);
+
+		$chartCount=array();
+		foreach($uniqueDates as $uniqueDate){
+			$cnt=$mongoCollection->distinct(
+				'File.MD5',
+				array('$and'=>
+					array(
+						$filter,
+						array('Date'=>$uniqueDate)
+					)
+				)
+			);
+			$cnt=sizeof($cnt);
 		
 			$chartNsec=$uniqueDate->sec*1000;
 
@@ -142,10 +194,10 @@ if (!function_exists("getTotalMaliciousCount")){
 				)
 			)
 		);
-
 		return $totalMal;
 	}
 }
+
 
 if(!function_exists("getTotalInputCount")){
 	function getTotalInputCount() {
@@ -277,6 +329,34 @@ if(!function_exists("returnAllRate")){
 	}
 }
 
+if(!function_exists("calculateDailyPercent")){
+	function calculateDailyPercent($numerator, $denominator) {
+		$numerSize=sizeof($numerator)-1;
+		$denomSize=sizeof($denominator)-1;
+		$retval=array();
+
+		// printf("<pre>");
+		for ($i=0;$i<=$denomSize;$i++){
+			$ts_d=$denominator[$i][0];
+			// printf($ts_d+"\n");
+			for ($j=0;$j<=$numerSize;$j++){
+				$ts_n=$numerator[$j][0];
+				if ($ts_d==$ts_n) {
+					// printf("\n denom_ts, numer_ts\n");
+					// printf($ts_d, $ts_n);
+					// printf("\n countData: numer, denum, percent\n");
+					// printf($numerator[$j], $denominator[$i], $numerator[$j][1]/$denominator[$i][1]*100);
+					// printf("\n");
+					// Timestamp Match!
+					array_push($retval, array($ts_d, $numerator[$j][1]/$denominator[$i][1]*100));
+					break;
+				}
+			}
+		}
+		return $retval;
+	}
+}
+
 if(!function_exists("returnEngineDiff")){
 	function returnEngineDiff(){
 		// $Total_Data=getArrayPerDay(array('File.Size'=>array('$gt'=>0)));
@@ -294,14 +374,37 @@ if(!function_exists("returnEngineDiff")){
 		$VirusTotal_Data=getArrayPerDay(array('Results.VirusTotal.Result'=>'MALICIOUS'));
 		$Heimdal_Data=getArrayPerDay(array('Results.Heimdal.Result'=>'MALICIOUS'));
 		$MDP_VM_Data=getArrayPerDay(array('Results.MDP_VM.Result'=>'MALICIOUS'));
+		$Total_Malware_Data=getTotalMaliciousCountArrayPerDay(
+			array('$or'=>
+				array(
+					array('Results.DICA.Result'=>'MALICIOUS'),
+					array('Results.V3.Result'=>'MALICIOUS'),
+					array('Results.Heimdal.Result'=>'MALICIOUS'),
+					array('Results.VirusTotal.Result'=>'MALICIOUS'),
+					array('Results.MDP_VM.Result'=>'MALICIOUS')
+				)
+			)
+		);
+
+		$DICA_percent=calculateDailyPercent($DICA_Data, $Total_Malware_Data);
+		$V3_percent=calculateDailyPercent($V3_Data, $Total_Malware_Data);
+		$VirusTotal_percent=calculateDailyPercent($VirusTotal_Data, $Total_Malware_Data);
+		$Heimdal_percent=calculateDailyPercent($Heimdal_Data, $Total_Malware_Data);
+		$MDP_VM_percent=calculateDailyPercent($MDP_VM_Data, $Total_Malware_Data);
 
 		$retval=array_merge(
 			array('Total'=>$Total_Data),
+			array('TotalMalicious'=>$Total_Malware_Data),
 			array('DICA'=>$DICA_Data),
+			array('DICA_percent'=>$DICA_percent),
 			array('V3'=>$V3_Data),
+			array('V3_percent'=>$V3_percent),
 			array('VirusTotal'=>$VirusTotal_Data),
+			array('VirusTotal_percent'=>$VirusTotal_percent),
 			array('Heimdal'=>$Heimdal_Data),
-			array('MDP_VM'=>$MDP_VM_Data)
+			array('Heimdal_percent'=>$Heimdal_percent),
+			array('MDP_VM'=>$MDP_VM_Data),
+			array('MDP_VM_percent'=>$MDP_VM_percent)
 		);
 		return $retval;
 	}
@@ -325,15 +428,22 @@ if(!function_exists("returnResultTable")){
 						)
 					)
 				), 
-				array('$group'=>array(
-					'_id'    => '$File.MD5',
-					'Date'   => array('$push'=>'$Date'),
-					'File'   => array('$push'=>'$File'),
-					'Threat' => array('$push'=>'$Threat'),
-					'Results'=> array('$push'=>'$Results'),
+				array(
+					'$group'=>array(
+						'_id'    => '$File.MD5',
+						'Date'   => array('$push'=>'$Date'),
+						'File'   => array('$push'=>'$File'),
+						'Threat' => array('$push'=>'$Threat'),
+						'Results'=> array('$push'=>'$Results'),
 					)
+				),
+				array(
+					'$sort' => array('Date'=>-1)
+				),
+				array(
+					'$limit' => 10000
 				)
-			));
+			), array('allowDiskUse'=>true));
 			/* Mogodb Query example
 			db.enginediff.aggregate([
 			    {
@@ -356,6 +466,7 @@ if(!function_exists("returnResultTable")){
 
 		}
 		else {
+			$t=null;
 			$t=$mongoCollection->aggregate(array(
 				array(
 					'$match'=>array(
@@ -375,85 +486,93 @@ if(!function_exists("returnResultTable")){
 					'Threat' => array('$push'=>'$Threat'),
 					'Results'=> array('$push'=>'$Results'),
 					)
+				),
+				array(
+					'$sort'=> array('Date'=>-1)
+				),
+				array(
+					'$limit' => 10000
 				)
-			));
+			), array('allowDiskUse'=>true));
 		}
 
 
 		$retval=array();
-		foreach($t['result'] as $d){
-			$D=$d['Results'];
-			$results=array();
-			foreach ($D as $r) {
-				// return isset($r[0]['DICA']);
+		if ($t!=null) {
+			foreach($t['result'] as $d){
+				$D=$d['Results'];
+				$results=array();
+				foreach ($D as $r) {
+					// return isset($r[0]['DICA']);
 
-				if (isset($r[0]['DICA'])){
-					$dica      =$r[0]['DICA'];
-				}
-				if (isset($r[0]['V3'])){
-					$v3        =$r[0]['V3'];
-				}
-				if (isset($r[0]['VirusTotal'])){
-					$virustotal=$r[0]['VirusTotal'];
-				}
-				if (isset($r[0]['Heimdal'])){
-					$heimdal   =$r[0]['Heimdal'];
-				}
-				if (isset($r[0]['MDP_VM'])){
-					$mdp_vm   =$r[0]['MDP_VM'];
-				}
+					if (isset($r[0]['DICA'])){
+						$dica      =$r[0]['DICA'];
+					}
+					if (isset($r[0]['V3'])){
+						$v3        =$r[0]['V3'];
+					}
+					if (isset($r[0]['VirusTotal'])){
+						$virustotal=$r[0]['VirusTotal'];
+					}
+					if (isset($r[0]['Heimdal'])){
+						$heimdal   =$r[0]['Heimdal'];
+					}
+					if (isset($r[0]['MDP_VM'])){
+						$mdp_vm   =$r[0]['MDP_VM'];
+					}
 
-				if (isset($dica['Result'])) {
-					if (isset($dica['Reason'])==null) {$dica['Reason']=null;}
-					## exclude following DICA version
-					## '4.1.2.1','5.0.0.54','5.0.1.39'
-					if ( ($dica['Version']!='4.1.2.1')
-					  || ($dica['Version']!='5.0.0.54')
-					  || ($dica['version']!='5.0.1.39')
-					) {
+					if (isset($dica['Result'])) {
+						if (isset($dica['Reason'])==null) {$dica['Reason']=null;}
+						## exclude following DICA version
+						## '4.1.2.1','5.0.0.54','5.0.1.39'
+						if ( ($dica['Version']!='4.1.2.1')
+						  || ($dica['Version']!='5.0.0.54')
+						  || ($dica['version']!='5.0.1.39')
+						) {
+							$results=array_merge($results,
+								array("DICA_Result"=>$dica['Result'], "DICA_Reason"=>$dica['Reason'])
+							); 
+						}
+					}
+					if (isset($v3['Result'])) {
+						if (isset($v3['Reason'])==null) {$v3['Reason']=null;}
 						$results=array_merge($results,
-							array("DICA_Result"=>$dica['Result'], "DICA_Reason"=>$dica['Reason'])
+							array("V3_Result"=>$v3['Result'], "V3_Reason"=>$v3['Reason'])
+						); 
+					}
+					if (isset($virustotal['Result'])) {
+						if (isset($virustotal['Reason'])==null) {$virustotal['Reason']=null;}
+						$results=array_merge($results,
+							array("VirusTotal_Result"=>$virustotal['Result'], "VirusTotal_Reason"=>$virustotal['Reason'])
+						); 
+					}
+					if (isset($heimdal['Result'])) {
+						if (isset($heimdal['Reason'])==null) {$heimdal['Reason']=null;}
+						$results=array_merge($results,
+							array("Heimdal_Result"=>$heimdal['Result'], "Heimdal_Reason"=>$heimdal['Reason'])
+						); 
+					}
+					if (isset($mdp_vm['Result'])) {
+						if (isset($mdp_vm['Reason'])==null) {$mdp_vm['Reason']=null;}
+						$results=array_merge($results,
+							array("MDP_VM_Result"=>$mdp_vm['Result'], "MDP_VM_Reason"=>$mdp_vm['Reason'])
 						); 
 					}
 				}
-				if (isset($v3['Result'])) {
-					if (isset($v3['Reason'])==null) {$v3['Reason']=null;}
-					$results=array_merge($results,
-						array("V3_Result"=>$v3['Result'], "V3_Reason"=>$v3['Reason'])
-					); 
-				}
-				if (isset($virustotal['Result'])) {
-					if (isset($virustotal['Reason'])==null) {$virustotal['Reason']=null;}
-					$results=array_merge($results,
-						array("VirusTotal_Result"=>$virustotal['Result'], "VirusTotal_Reason"=>$virustotal['Reason'])
-					); 
-				}
-				if (isset($heimdal['Result'])) {
-					if (isset($heimdal['Reason'])==null) {$heimdal['Reason']=null;}
-					$results=array_merge($results,
-						array("Heimdal_Result"=>$heimdal['Result'], "Heimdal_Reason"=>$heimdal['Reason'])
-					); 
-				}
-				if (isset($mdp_vm['Result'])) {
-					if (isset($mdp_vm['Reason'])==null) {$mdp_vm['Reason']=null;}
-					$results=array_merge($results,
-						array("MDP_VM_Result"=>$mdp_vm['Result'], "MDP_VM_Reason"=>$mdp_vm['Reason'])
-					); 
-				}
-			}
 
-			$info=array(
-				"Date"=>date('Y-m-d', $d['Date'][0]->sec),
-				"Name"=>$d['File'][0]['Name'],
-				"Type"=>$d['File'][0]['Type'],
-				"MD5"=>$d['File'][0]['MD5'],
-				"CRC64"=>$d['File'][0]['CRC64'],
-				"Size"=>$d['File'][0]['Size'],
-				"Severity"=>$d['Threat'][0]['Severity'],
-				"Threat_Name"=>$d['Threat'][0]['Name'],
-			);
-			$retr=array_merge($info,$results);
-			array_push($retval, $retr);
+				$info=array(
+					"Date"=>date('Y-m-d', $d['Date'][0]->sec),
+					"Name"=>$d['File'][0]['Name'],
+					"Type"=>$d['File'][0]['Type'],
+					"MD5"=>$d['File'][0]['MD5'],
+					"CRC64"=>$d['File'][0]['CRC64'],
+					"Size"=>$d['File'][0]['Size'],
+					"Severity"=>$d['Threat'][0]['Severity'],
+					"Threat_Name"=>$d['Threat'][0]['Name'],
+				);
+				$retr=array_merge($info,$results);
+				array_push($retval, $retr);
+			}
 		}
 		return $retval;
 	}

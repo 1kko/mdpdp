@@ -1,34 +1,88 @@
-.float-div {
+/*.float-div {
     position:fixed;
-    /*left:550px;*/
     left:0px;
     top:65px;
-}
+}*/
 
-.float-leftpane {
-position: fixed;
+/*.float-leftpane {
+position: fixed;*/
 /*left:30px;
     top:60px;
     overflow: auto;
     overflow-y: scroll;*/
-}
+/*}*/
 
 /*div .editor_pane {
     overflow-y:scroll;
 }
 */
-div #andQueryView {
+/*div #andQueryView {
     overflow-y: scroll;
     height:60px;
-}
-
-body {
-    margin-top:60px;
-}
+}*/
 
 .float-button { float:top; }
 @-ms-viewport       { width: device-width; }
-.div_contents_viewer { height:500px; overflow: auto;}
+
+@media screen and (min-width: 768px) {
+  
+  .modal-dialog  {width:85%;}
+
+}
+
+
+/*.div_contents_viewer { height:500px; overflow: auto;}*/
+
+/*Resizable DIV
+http://stackoverflow.com/questions/4673348/emulating-frame-resize-behavior-with-divs-using-jquery-without-using-jquery-ui
+http://jsfiddle.net/gaby/Bek9L/
+*/
+
+body,html{
+   top:60px;
+   left: 0px;
+   padding:0 0 0 0;
+}
+
+#left_pane{
+   width:422px;
+   float: left;
+   position: absolute;
+   top:60px;
+   /*padding-right: 6px;*/
+   /*margin-right: 6px;*/
+   bottom: 0px;
+   /*overflow-y: hidden;*/
+   resize: both;
+   word-break: break-all;
+}
+
+#div-history{
+  padding-right: 3px;
+  margin-right: 3px;
+  position: absolute;
+}
+
+#dragbar{
+   background-color:gray;
+   height:100%;
+   top:0;
+   float: right;
+   position: relative;
+   width: 2px;
+   cursor: col-resize;
+   /*z-index:100000;*/
+}
+
+#editor_pane{
+   float: right;
+   position: absolute;
+   top:60px;
+   bottom: 0px;
+   right: 0;
+   word-break: break-all;
+   left:452px;
+}
 
 
 .jstree-proton .jstree-search  {
@@ -57,6 +111,23 @@ body {
 
 
 /***** for D3 Chart ******/
+/* responsive d3 chart 
+   http://stackoverflow.com/questions/16265123/resize-svg-when-window-is-resized-in-d3-js
+*/
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 0;
+}
 
 /* when use Circular, please disable until END Mark */
 .node {

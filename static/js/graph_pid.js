@@ -20,7 +20,6 @@ function drawPidGraph(behaviorData, CSStarget, width, height) {
             return [tx,ty]; 
     }
 
-
     var myData;
 
     var processLinks=[];
@@ -34,13 +33,29 @@ function drawPidGraph(behaviorData, CSStarget, width, height) {
     var color = d3.scale.category20();
 
     var force = d3.layout.force()
-        .charge(-1000)
-        .linkDistance(200)
-        .size([width, height]);
+        .charge(-300)
+        .linkDistance(200);
+        // .size([width, height]);
 
     var svg = d3.select(CSStarget).append("svg")
         .attr("width", width)
         .attr("height", height);
+
+    console.log("hello world!");
+    $(window).on('resize',function() {
+        console.log("Im resizing!!");
+        svg.attr("width", $(CSStarget).parent().width())
+        .attr("height", $(CSStarget).parent().height());
+    })
+    // var svg = d3.select(CSStarget)
+    //     .append("div")
+    //     .classed("svg-container", true)
+    //     .append("svg")
+    //     //responsive SVG needs these 2 attributes and no width and height attr
+    //     .attr("preserveAspectRatio", "xMinYMin meet")
+    //     .attr("viewBox", "0 0 600 400")
+    //     //class to make it responsive
+    //     .classed("svg-content-responsive", true); 
 
     var refinedData=[];
     for (var i = 0; i < behaviorData.length; i++) {
@@ -218,4 +233,6 @@ function drawPidGraph(behaviorData, CSStarget, width, height) {
         text.attr("x", function(d) { return d.x-(radius);})
             .attr("y", function(d) { return d.y+(radius+radius/2);});
     });
+
+
 }

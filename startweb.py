@@ -147,6 +147,11 @@ def mainpage():
 def startpage(query):
 	return render_template('template.html', query=query)
 
+@app.route("/md5list/", methods=['POST'])
+def md5list():
+	query=request.form.getlist('md5list[]')
+	return render_template('template.html', md5list=";".join(query))
+
 @app.route("/count/", methods=['POST'])
 def count():
 	query=request.form.get('query')

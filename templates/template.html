@@ -244,7 +244,7 @@ $(document).ready(function(){
 	$('#text-search').on('focusin', 
 	function() {
 		W=$(this).parent().parent().width();
-		$(this).animate({width:W},300).css('word-break','break-all');
+		$(this).animate({width:W},100).css('word-break','break-all');
 	}).on('focusout',
 	function() {
 		$(this).animate({width:'70%', height:'38px'},200);
@@ -252,7 +252,6 @@ $(document).ready(function(){
 
 	// var i = 0;
 	$('#dragbar').mousedown(function(e){
-		  
 		e.preventDefault();
 			// $('#mousestatus').html("mousedown" + i++);
 			$(document).mousemove(function(e){
@@ -260,22 +259,36 @@ $(document).ready(function(){
 			$('#left_pane').css("width",e.pageX+2);
 			$('#editor_pane').css("left",e.pageX+2+30);
 		})
-		   // console.log("leaving mouseDown");
+		// console.log("leaving mouseDown");
 	});
 	$(document).mouseup(function(e){
 		// $('#clickevent').html('in another mouseUp event' + i++);
 		$(document).unbind('mousemove');
 	});
-
 	$('#dragbar').trigger('mousedown').trigger('mouseup');
 
 
-
+	// adding enter event to search input box
+	$('#text-search').live('keypress', function (e) {
+		if (e.which==13) { // 13 == enter key@ascii
+			$('#btn-search').click();
+		}
+	});
 
 	// flask if / endif
 	{% if query %}
 	$('#text-search').val("{{query}}");
 	$('#btn-search').click();
+	{% endif %}
+
+	{% if md5list %}
+	var md5list="{{md5list}}".split(";");
+	for (var i in md5list) {
+		$('#text-search').val("md5="+md5list[i]);
+		$('#btn-search').click();
+	}
+	// reset searchbox.
+	$('#text-search').val("");
 	{% endif %}
 });
 

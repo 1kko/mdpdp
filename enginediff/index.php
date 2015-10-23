@@ -51,6 +51,7 @@ include_once("common/lib.php");
 			<div class="col-xs-12">
 				<table id="resultTable"
 					data-show-columns="true"
+					data-click-to-select="true"
 					data-pagination="true"
 					data-search="true"
 					data-sort-name="Date, Severity"
@@ -61,10 +62,11 @@ include_once("common/lib.php");
 					data-row-style="rowStyle">
 					<thead>
 						<tr>
+					        <th data-sortable="false" data-visible="true" data-field="state" data-checkbox="true">C</th>
 							<th data-sortable="true" data-visible="true"  data-field="Date">Date</th>
 							<th data-sortable="true" data-visible="false" data-field="Name">Name</th>
 							<th data-sortable="true" data-visible="false" data-field="Type">Type</th>
-							<th data-sortable="true" data-visible="true"  data-field="MD5" data-formatter="mdpdpQuery">MD5</th>
+							<th data-sortable="true" data-visible="true"  data-field="MD5">MD5</th>
 							<th data-sortable="true" data-visible="true" data-field="CRC64">CRC64</th>
 							<th data-sortable="true" data-visible="false" data-field="Size">Size</th>
 							<th data-sortable="true" data-visible="false" data-field="Severity">Severity</th>
@@ -82,6 +84,14 @@ include_once("common/lib.php");
 						</tr>
 					</thead>
 				</table>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-2">
+			<form id="md5listForm" method="POST">
+				<!-- <input name="md5listField" type="hidden" id="md5listField"> -->
+			</form>
+			<button class="btn btn-primary" id="sendtoanalysis">Send to Analysis</button>
 			</div>
 		</div>
 		<!--div class="row">
@@ -213,6 +223,22 @@ $(document).ready(function() {
 	dr.setEndDate(endDate);
 
 	refresh(range);
+
+	$('#md5listForm').attr('action', window.location.protocol + '//' + window.location.hostname + ':5000' + '/md5list/');
+	$('#sendtoanalysis').on('click', function() {
+		// on click should be fill up form and send to targetUrl
+		// 1. get selection from table, and fill up #md5list
+		var selections=$('#resultTable').bootstrapTable('getSelections');
+		console.log(selections);
+		var md5list="";
+		for (var i in selections) {
+			// 2. append inputfield and fill up
+			// $('#md5listField').val(md5list);
+			$("<input type='text' name='md5list[]' value='"+selections[i]['MD5']+"' />").appendTo('#md5listForm');
+		}
+		// 3. submit form.
+		$('#md5listForm').submit();
+	});
 });
 </script>
 </html>

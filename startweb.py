@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 # coding=utf-8
 
-from flask import Flask, render_template, request, url_for, Response
+from flask import Flask, render_template, request, url_for, Response, redirect, send_from_directory, abort
+import flask.ext.login as flask_login
 import os
 from werkzeug import secure_filename
 import pymongo, json
@@ -20,20 +21,28 @@ import importer
 from reversediff import findCommon
 
 connection=pymongo.MongoClient("localhost",27017)
-MDPMongoDB=connection.MDP
-col_behavior=MDPMongoDB.behavior
-EngineDiff=connection.enginediff
-col_enginediff=EngineDiff.enginediff
+MDPMongoDB=connection.MDPDP
+col_behavior=MDPMongoDB.behavior_PE
+col_enginediff=MDPMongoDB.enginediff_PE
+login_manager=flask_login.LoginManager()
 
 count=0
 
 database = MySQLDatabase('MEDDB', **{'password': 'qwe123', 'user': 'asduser03'})
-
+users={'foo@bar.tld':{'pw':'secret'}}
 
 app=Flask(__name__)
-app.config['UPLOAD_FOLDER']='/tmp'
-app.config['CSV_FOLDER']='/home/ikko/repo/mdpdp/csv'
+
+
+# print "my path:", 
+# app.config['MDPDP_BASEDIR']='/home/ikko/repo/mdpdp'
+MDPDP_BASEDIR=os.path.dirname(os.path.realpath(__file__))
+# print "my path:",MDPDP_BASEDIR
+app.config['ZIP_UPLOAD_DIR']=os.path.join(MDPDP_BASEDIR,'upload/zip/')
+app.config['CSV_UPLOAD_DIR']=os.path.join(MDPDP_BASEDIR,'upload/csv/')
+
 application=app
+login_manager.init_app(app)
 
 # with app.request_context(environ):
 #     assert request.method == 'POST'
@@ -61,6 +70,34 @@ class MedFile(BaseModel):
     class Meta:
         db_table = 'med_file'
 
+class User(flask_login.UserMixin):
+    pass
+
+
+@login_manager.user_loader
+def user_loader(email):
+    if email not in users:
+        return
+
+    user = User()
+    user.id = email
+    return user
+
+
+@login_manager.request_loader
+def request_loader(request):
+    email = request.form.get('email')
+    if email not in users:
+        return
+
+    user = User()
+    user.id = email
+
+    # DO NOT ever store passwords in plaintext and always compare password
+    # hashes using constant-time comparison!
+    user.is_authenticated = request.form['pw'] == users[email]['pw']
+
+    return user
 
 def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 
@@ -151,150 +188,6 @@ def postprocessor(value):
 			return value
 		except:
 			return value
-
-
-@app.route("/analysis/")
-def mainpage():
-	return render_template('analysis.html')
-
-@app.route("/query/<query>/")
-def startpage(query):
-	return render_template('analysis.html', query=query)
-
-@app.route("/md5list/", methods=['POST'])
-def md5list():
-	query=request.form.getlist('md5list[]')
-	return render_template('analysis.html', md5list=";".join(query))
-
-@app.route("/count/", methods=['POST'])
-def count():
-	query=request.form.get('query')
-	key=query.split("=")[0]
-	val=postprocessor(query.split("=")[1])
-	data=col_behavior.find({key:val}).count()
-	return json.dumps(data, default=json_util.default)
-
-@app.route("/count/and/", methods=['POST'])
-def count_and():
-	query=request.form.getlist('query[]')
-	queryList=[]
-	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
-	data=col_behavior.find({"$and":queryList}).count()
-	return json.dumps(data, default=json_util.default)
-
-@app.route("/detail_one/", methods=['POST'])
-def detail_one():
-	query=request.form.get('query')
-	# print request.form
-	key=query.split("=")[0]
-	val=postprocessor(query.split("=")[1])
-	data=col_behavior.find_one({key:val})
-	return json.dumps(data, default=json_util.default)	
-
-@app.route("/detail_one/and/", methods=['POST'])
-def detail_one_and():
-	query=request.form.getlist('query[]')
-	queryList=[]
-	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
-	data=col_behavior.find_one({"$and":queryList})
-	return json.dumps(data, default=json_util.default)
-
-@app.route("/list/", methods=['GET','POST'])
-def list():
-	if request.method=="POST":
-		# print "POST", request.form
-		query = request.form.get('query')
-		limit = request.form.get('limit')
-		offset= request.form.get('offset')
-		sort  = request.form.get('sort')
-		order = request.form.get('order')
-		search= request.form.get('search')
-	else:
-		# print "GET", request.args
-		query = request.args.get('query')
-		limit = request.args.get('limit')
-		offset= request.args.get('offset')
-		sort  = request.args.get('sort')
-		order = request.args.get('order')
-		search= request.args.get('search')
-
-	try:
-		key=query.split("=")[0]
-		val=postprocessor(query.split("=")[1])
-	except:
-		key=query.split("%\3D")[0]
-		val=postprocessor(query.split("%\3D")[1])
-
-	# data from mongodb
-	md5sumlist=col_behavior.find({key:val}).distinct("md5sum")
-	# print "search", search
-
-	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
-
-@app.route("/list/and/", methods=['GET','POST'])
-def list_and():
-	if request.method=="POST":
-		# print "POST", request.form
-		query = request.form.getlist('query[]')
-		limit = request.form.get('limit')
-		offset= request.form.get('offset')
-		sort  = request.form.get('sort')
-		order = request.form.get('order')
-		search= request.form.get('search')
-	else:
-		# print "GET", request.args
-		query = request.args.getlist('query[]')
-		limit = request.args.get('limit')
-		offset= request.args.get('offset')
-		sort  = request.args.get('sort')
-		order = request.args.get('order')
-		search= request.args.get('search')
-
-	# global cursor
-	# print query
-	# limit=request.form.get('limit')
-	queryList=[]
-	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
-	md5sumlist=col_behavior.find({"$and":queryList}).distinct("md5sum")
-	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
-
-@app.route("/find/common/", methods=['GET','POST'])
-def find_intersaction_keyval():
-	if request.method=="POST":
-		# print "POST", request.form
-		query = request.form.getlist('query[]')
-		return json.dumps(findCommon(query), default=json_util.default)
-
-@app.route("/remoteupload/zip/", methods=['GET','POST'])
-def remove_update_zip():
-	try:
-		if request.method=="POST":
-			file=request.files['file']
-			if file and allowed_file(file.filename):
-				filename=secure_filename(file.filename)
-				filepath=os.path.join(app.config['UPLOAD_FOLDER'], filename)
-				file.save(filepath)
-				# print "filename: %s" % (filepath)
-				import_thread=threading.Thread(target=importer.startImportZip, args=(filepath,))
-				import_thread.start()
-				return "Upload successful. Started to import zipfile"
-		else:
-			return "Failed"
-	except Exception as e:
-		return "Failed: %s" % (e)
-
-@app.route("/")
-def dashboard():
-	return render_template('dashboard.html')
 
 
 def getDaterange(input_daterange):
@@ -584,8 +477,6 @@ def returnEngineDiff(fetchDate):
 	# print retval
 	return retval
 
-def isset(variable):
-	return variable in locals() or variable in globals()
 
 def returnResultTable(fetchDate=None, fetchEngine=None, daterange=None):
 	if fetchDate is not None:
@@ -594,7 +485,7 @@ def returnResultTable(fetchDate=None, fetchEngine=None, daterange=None):
 		# print "here!"
 		fetchDate=datetime.fromtimestamp(fetchdate)
 		# print fetchDate
-		t=col_enginediff.aggregate([
+		query=[
 			{
 				'$match': {
 					'$and':[
@@ -621,7 +512,8 @@ def returnResultTable(fetchDate=None, fetchEngine=None, daterange=None):
 			{
 				'$limit':10000
 			}
-		])
+		]
+		documents=col_enginediff.aggregate(query, allowDiskUse=True)
 
 	else:
 		startDate, endDate=getDaterange(daterange)
@@ -638,115 +530,78 @@ def returnResultTable(fetchDate=None, fetchEngine=None, daterange=None):
 			{'$sort':{'Date':-1}},
 			{'$limit':10000},
 		]
-		t=col_enginediff.aggregate(query)
+		documents=col_enginediff.aggregate(query, allowDiskUse=True)
 
 	retval=[]
-	if t is not None:
+	if documents is not None:
 		# print "t: %s" % t
-		for d in t:
-			# print "============ d: %s" % d
-			D=d['Results']
+		for document in documents:
+			# print "============ document: %s" % document
+			# results={}
+
+			threat_name="None"
+			if document['Threat'][0].has_key('Name'):
+				threat_name=document['Threat'][0]['Name']
+
+			crc64="None"
+			if document['File'][0].has_key('CRC64'):
+				crc64=document['File'][0]['CRC64']
+
+			info={
+				"Date":document['Date'][0].strftime('%Y-%m-%d'),
+				"Name":document['File'][0]['Name'],
+				"Type":document['File'][0]['Type'],
+				"MD5":document['File'][0]['MD5'],
+				"CRC64":crc64,
+				"Size":document['File'][0]['Size'],
+				"Severity":document['Threat'][0]['Severity'],
+				"Threat_Name":threat_name
+			}
+
 			results={}
-			for r in D:
-				data=r[0]
-				v=0
-				m=0
-				# print data
-
-				try:
-					threat_name=d['Threat'][0]['Threat_Name']
-				except KeyError:
-					threat_name="None"
-				info={
-					"Date":d['Date'][0].strftime('%Y-%m-%d'),
-					"Name":d['File'][0]['Name'],
-					"Type":d['File'][0]['Type'],
-					"MD5":d['File'][0]['MD5'],
-					"CRC64":d['File'][0]['CRC64'],
-					"Size":d['File'][0]['Size'],
-					"Severity":d['Threat'][0]['Severity'],
-					"Threat_Name":threat_name
-				}
-
-
-				try:
-					elementVal=data['MDP_VM']
+			for Results in document['Results']:
+				if Results.has_key('MDP_VM'):
+					elementVal=Results['MDP_VM']
 					elementKey="MDP_VM"
 					results.update({elementKey+'_Result':elementVal['Result'], elementKey+'_Reason':elementVal['Reason']})
-					m=1
-				except KeyError:
-					pass
+					# m=1
 
-				try:
-					elementVal=data['V3']
+				if Results.has_key('V3'):
+					elementVal=Results['V3']
 					elementKey="V3"
 					results.update({elementKey+'_Result':elementVal['Result'], elementKey+'_Reason':elementVal['Reason']})
-					v=1
-				except KeyError:
-					pass
+					# print elementKey, elementVal
+					# v=1
 
-				try:
-					elementVal=data['Heimdal']
+				if Results.has_key('Heimdal'):
+					elementVal=Results['Heimdal']
 					elementKey="Heimdal"
 					results.update({elementKey+'_Result':elementVal['Result'], elementKey+'_Reason':elementVal['Reason']})
-				except KeyError:
-					pass
 
-				try:
-					elementVal=data['DICA']
+				if Results.has_key('DICA'):
+					elementVal=Results['DICA']
 					if elementVal['Version'] in ['4.1.2.1', '5.0.0.54', '5.0.1.39']:
 						# skip above version
 						raise KeyError
 					elementKey="VirusTotal"
 					results.update({elementKey+'_Result':elementVal['Result'], elementKey+'_Reason':elementVal['Reason']})
-				except KeyError:
-					pass
+				
+				info.update(results)
 
-				results.update(info)
+				# if m==1 and v==1:
+				# 	print results
+				# 	pass
+			# info.update(results)
+			retval.append(info)
+			# print "appending info: %s" % info
+			# print "=-"*40
+			# print info
 
-				if m==1 and v==1:
-					# print results
-					pass
-				retval.append(results)
 
-				# print retval
+			# info.update(retval)	# print retval
 	# print retval
 	return retval
 
-
-@app.route("/fetch/enginerate/<engineName>")
-def fetchEngineRate(engineName):
-	return Response(json.dumps(returnEngineRate(engineName)), mimetype='application/json')
-
-
-@app.route("/fetch/DICAVersions/")
-def fetchDicaVersions():
-	fetchDate   = request.args.get('daterange')
-	return Response(json.dumps(returnDICAVersions(fetchDate)), mimetype='application/json')
-
-@app.route("/fetch/Overall/")
-def fetchOverAll():
-	fetchDate   = request.args.get('daterange')
-	return Response(json.dumps(returnOverall(fetchDate)), mimetype='application/json')
-
-@app.route("/fetch/AllRate/")
-def fetchAllRate():
-	fetchDate   = request.args.get('daterange')
-	return Response(json.dumps(returnAllRate(fetchDate)), mimetype='application/json')
-
-@app.route("/fetch/ResultTable/")
-def fetchResultTable():
-	fetchDate   = request.args.get('date')
-	fetchEngine = request.args.get('engine')
-	daterange   = request.args.get('daterange')
-	return Response(json.dumps(returnResultTable(fetchDate, fetchEngine, daterange)), mimetype='application/json')
-
-@app.route("/fetch/EngineDiff/")
-def fetchEngineDiff():
-	fetchDate   = request.args.get('daterange')
-	# print "+="*40
-	# print fetchDate
-	return Response(json.dumps(returnEngineDiff(fetchDate)), mimetype='application/json')
 
 def csvToJson(csvString):
 	keys=[]
@@ -765,10 +620,12 @@ def csvToJson(csvString):
 		retval.append(cols)
 	return retval
 
+
 def csvToMongo(csvString):
 	data=csvToJson(csvString)
+	# print data
 	# data=json.dumps(jsonData)
-	ret=[]
+	mongoRetval=[]
 	# print "data", data
 	for elem in data:
 		# PreProcessing Rule 
@@ -781,6 +638,8 @@ def csvToMongo(csvString):
 		elem['Severity']=int(elem['Severity'])
 		if elem['Threat_Name'].lower()=="none" or elem['Threat_Name']=="":
 			elem['Threat_Name']=None
+		if elem.has_key("CRC64") is not True:
+			elem['CRC64']=None
 
 		# Processing From here.
 		Date=elem['Date']
@@ -801,109 +660,383 @@ def csvToMongo(csvString):
 
 		Threat={
 			"Severity":elem['Severity'],
-			"Name": elem['Threat_Name']
+			"Name": elem['Threat_Name'],
+			"VM_Severity":elem['Result']
 		}
 		elem.pop('Severity')
+		elem.pop('Result')
 
+		Results={}
 		for key, val in elem.items():
-			Results=[]
 			# result(BENIGN|MALICIOUS|SUSPICIOUS) categorization
-			if val=="MALICOUS":
-				val="MALICIOUS"
-			if val in ['not found', 'Not found', 'None', 'none', 'Clean', 'BENIGN', '']:
-				result="BENIGN"
-				reason=val
+			if key=='':
+				pass
 			else:
-				result=val
-				reason=val
+				if val=="MALICOUS":
+					val="MALICIOUS"
+				if val in ['not found', 'Not found', 'None', 'none', 'Clean', 'BENIGN', '', None]:
+					result="BENIGN"
+					reason=val
+				else:
+					result=val
+					reason=val
 
-			if key.find("DICA") >= 0:
-				Engine="DICA"
-				EngineVersion=key.replace("DICA_","")
-				Result=result
-				Reason=reason
-			elif key.find("VM_Threat_Name") >= 0:
-				Engine="MDP_VM"
-				if val.find("/") >= 0 :
-					EngineVersion=0
-					if reason!="None":
-						Result="MALICIOUS"
-					else:
-						Result="BENIGN"
-				else:
-					EngineVersion=0
-					Result="BENIGN"
-					Reason=0
-			elif key.find("AhnLab-V3") >= 0 or key.find("Threat_Name")>=0:
-				Engine="V3"
-				EngineVersion=key
-				if result!="BENIGN":
-					Result="MALICIOUS"
-				else:
+				if key.find("DICA") >= 0:
+					Engine="DICA"
+					EngineVersion=key.replace("DICA_","")
 					Result=result
-			elif key.find("Heimdal")>=0:
-				Engine="Heimdal"
-				EngineVersion=key
-				Result=result
-				Reason=reason
-				if reason.find("/") >=0:
-					Result=result.split("/")[0]
-					Reason=result.split("/")[1]
-			elif key.find("VirusTotal") >= 0:
-				Engine="VirusTotal"
-				if val.find("/") >= 0:
-					EngineVersion=reason.split("/")[1]
-					if int(reason.split("/")[0])>0:
+					Reason=reason
+				elif key.find("VM_Threat_Name") >= 0:
+					Engine="MDP_VM"
+					if val.find("/") >= 0 :
+						EngineVersion=0
+						Reason=reason
+						if reason!="None":
+							Result="MALICIOUS"
+						else:
+							Result="BENIGN"
+							Reason=None
+					else:
+						EngineVersion=0
+						Result="BENIGN"
+						Reason=None
+				elif key.find("AhnLab-V3") >= 0 or key.find("Threat_Name")>=0:
+					Engine="V3"
+					EngineVersion="AhnLab-V3"
+					Reason=reason
+					if result!="BENIGN":
 						Result="MALICIOUS"
 					else:
+						Result=result
+				elif key.find("Heimdal")>=0:
+					Engine="Heimdal"
+					EngineVersion=key
+					Result=result
+					Reason=reason
+					if reason.find("/") >=0:
+						Result=result.split("/")[0]
+						Reason=result.split("/")[1]
+				elif key.find("VirusTotal") >= 0:
+					Engine="VirusTotal"
+					if val.find("/") >= 0:
+						EngineVersion=int(reason.split("/")[1])
+						Reason=int(reason.split("/")[0])
+						if int(reason.split("/")[0])>0:
+							Result="MALICIOUS"
+						else:
+							Result="BENIGN"
+					else:
+						EngineVersion=0
 						Result="BENIGN"
+						Reason=0
 				else:
-					EngineVersion=0
-					Result="BENIGN"
-					Reason=0
-			else:
-				Engine=key
-				EngineVersion=key
-				Result=result
-				Reason=reason
-			
-			Results.append({
-				Engine: {
-					"Version":EngineVersion,
-					"Result":Result,
-					"Reason":Reason
-				}
-			})
-			elem.pop(key)
+					Engine=key
+					EngineVersion=key
+					Result=result
+					Reason=reason
 
-			retval={
+
+				# print "Engine: %s" % Engine
+				Results.update({
+					Engine: {
+						"Version":EngineVersion,
+						"Result":Result,
+						"Reason":Reason
+					}
+				})
+			# print Results
+			# elem.pop(key)
+
+		retval={
 				"Date": Date,
 				"File": File,
 				"Threat": Threat,
 				"Results": Results
-			}
-			retval['mongoResponse']=col_enginediff.insert(retval)
-		ret.append(retval)
-	return ret
+		}
+		# ret.append(retval)
+		# print "Insert: %s" % retval
+		mongoRetval.append(col_enginediff.insert(retval))
+	return mongoRetval
 
 
-@app.route("/uploadcsv/", methods=['POST','GET'])
-def uploadCSV():
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return 'Unauthorized'
+
+
+@app.route("/fetch/enginerate/<engineName>")
+def fetchEngineRate(engineName):
+	return Response(json.dumps(returnEngineRate(engineName)), mimetype='application/json')
+
+
+@app.route("/fetch/DICAVersions/")
+def fetchDicaVersions():
+	fetchDate   = request.args.get('daterange')
+	return Response(json.dumps(returnDICAVersions(fetchDate)), mimetype='application/json')
+
+
+@app.route("/fetch/Overall/")
+def fetchOverAll():
+	fetchDate   = request.args.get('daterange')
+	return Response(json.dumps(returnOverall(fetchDate)), mimetype='application/json')
+
+
+@app.route("/fetch/AllRate/")
+def fetchAllRate():
+	fetchDate   = request.args.get('daterange')
+	return Response(json.dumps(returnAllRate(fetchDate)), mimetype='application/json')
+
+
+@app.route("/fetch/ResultTable/")
+def fetchResultTable():
+	fetchDate   = request.args.get('date')
+	fetchEngine = request.args.get('engine')
+	daterange   = request.args.get('daterange')
+	return Response(json.dumps(returnResultTable(fetchDate, fetchEngine, daterange)), mimetype='application/json')
+
+
+@app.route("/fetch/EngineDiff/")
+def fetchEngineDiff():
+	fetchDate   = request.args.get('daterange')
+	# print "+="*40
+	# print fetchDate
+	return Response(json.dumps(returnEngineDiff(fetchDate)), mimetype='application/json')
+
+
+@app.route("/login", methods=['POST', 'GET'])
+def login():
+    if request.method == 'GET':
+        return '''
+               <form action='login' method='POST'>
+                <input type='text' name='email' id='email' placeholder='email'></input>
+                <input type='password' name='pw' id='pw' placeholder='password'></input>
+                <input type='submit' name='submit'></input>
+               </form>
+               '''
+
+    email = request.form['email']
+    if request.form['pw'] == users[email]['pw']:
+        user = User()
+        user.id = email
+        flask_login.login_user(user)
+        return redirect(url_for('protected'))
+
+    return 'Bad login'
+
+
+@app.route('/protected')
+@flask_login.login_required
+def protected():
+    return 'Logged in as: ' + flask_login.current_user.id
+
+
+@app.route('/logout')
+def logout():
+    flask_login.logout_user()
+    return 'Logged out'
+
+
+@app.route("/analysis/")
+def mainpage():
+	return render_template('analysis.html')
+
+
+@app.route("/query/<query>/")
+def startpage(query):
+	return render_template('analysis.html', query=query)
+
+
+@app.route("/md5list/", methods=['POST'])
+def md5list():
+	query=request.form.getlist('md5list[]')
+	return render_template('analysis.html', md5list=";".join(query))
+
+
+@app.route("/count/", methods=['POST'])
+def count():
+	query=request.form.get('query')
+	key=query.split("=")[0]
+	val=postprocessor(query.split("=")[1])
+	data=col_behavior.find({key:val}).count()
+	return json.dumps(data, default=json_util.default)
+
+
+@app.route("/count/and/", methods=['POST'])
+def count_and():
+	query=request.form.getlist('query[]')
+	queryList=[]
+	for keyval in query:
+		key=keyval.split("=")[0]
+		val=postprocessor(keyval.split("=")[1])
+		queryList.append({key:val})
+	data=col_behavior.find({"$and":queryList}).count()
+	return json.dumps(data, default=json_util.default)
+
+
+@app.route("/detail_one/", methods=['POST'])
+def detail_one():
+	query=request.form.get('query')
+	# print request.form
+	key=query.split("=")[0]
+	val=postprocessor(query.split("=")[1])
+	data=col_behavior.find_one({key:val})
+	return json.dumps(data, default=json_util.default)	
+
+
+@app.route("/detail_one/and/", methods=['POST'])
+def detail_one_and():
+	query=request.form.getlist('query[]')
+	queryList=[]
+	for keyval in query:
+		key=keyval.split("=")[0]
+		val=postprocessor(keyval.split("=")[1])
+		queryList.append({key:val})
+	data=col_behavior.find_one({"$and":queryList})
+	return json.dumps(data, default=json_util.default)
+
+
+@app.route("/list/", methods=['GET','POST'])
+def list():
+	if request.method=="POST":
+		# print "POST", request.form
+		query = request.form.get('query')
+		limit = request.form.get('limit')
+		offset= request.form.get('offset')
+		sort  = request.form.get('sort')
+		order = request.form.get('order')
+		search= request.form.get('search')
+	else:
+		# print "GET", request.args
+		query = request.args.get('query')
+		limit = request.args.get('limit')
+		offset= request.args.get('offset')
+		sort  = request.args.get('sort')
+		order = request.args.get('order')
+		search= request.args.get('search')
+
+	try:
+		key=query.split("=")[0]
+		val=postprocessor(query.split("=")[1])
+	except:
+		key=query.split("%\3D")[0]
+		val=postprocessor(query.split("%\3D")[1])
+
+	# data from mongodb
+	md5sumlist=col_behavior.find({key:val}).distinct("md5sum")
+	# print "search", search
+	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
+
+
+@app.route("/list/and/", methods=['GET','POST'])
+def list_and():
+	if request.method=="POST":
+		# print "POST", request.form
+		query = request.form.getlist('query[]')
+		limit = request.form.get('limit')
+		offset= request.form.get('offset')
+		sort  = request.form.get('sort')
+		order = request.form.get('order')
+		search= request.form.get('search')
+	else:
+		# print "GET", request.args
+		query = request.args.getlist('query[]')
+		limit = request.args.get('limit')
+		offset= request.args.get('offset')
+		sort  = request.args.get('sort')
+		order = request.args.get('order')
+		search= request.args.get('search')
+
+	# global cursor
+	# print query
+	# limit=request.form.get('limit')
+	queryList=[]
+	for keyval in query:
+		key=keyval.split("=")[0]
+		val=postprocessor(keyval.split("=")[1])
+		queryList.append({key:val})
+	md5sumlist=col_behavior.find({"$and":queryList}).distinct("md5sum")
+	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
+
+
+@app.route("/find/common/", methods=['GET','POST'])
+def find_intersaction_keyval():
+	if request.method=="POST":
+		# print "POST", request.form
+		query = request.form.getlist('query[]')
+		return json.dumps(findCommon(query), default=json_util.default)
+
+
+@app.route("/remoteupload/zip/", methods=['GET','POST'])
+def remove_updload_zip():
+	try:
+		if request.method=="POST":
+			file=request.files['file']
+			if file and allowed_file(file.filename):
+				filename=secure_filename(file.filename)
+				filepath=os.path.join(app.config['ZIP_UPLOAD_DIR'], filename)
+				file.save(filepath)
+				print "Zip Import Request:", filepath
+				import_thread=threading.Thread(target=importer.startImportZip, args=(filepath,))
+				import_thread.start()
+				return """{"return":"OK", "filename":"%s", "msg":"Upload successful. Started to import zip"}""" % filename
+		else:
+			return """{"return":"FAIL", "msg":"Upload failed. Please use POST method"}"""
+	except Exception as e:
+		return """{"return":"FAIL", "msg":"%s"}""" % str(e)
+
+
+@app.route("/remoteupload/csv/", methods=['POST'])
+def remove_updload_csv():
+	# curl --include --form file=@151025_pe_mds6000_FillNone.csv http://192.168.41.1/uploadcsv
 	if request.method=="POST":
 		file=request.files['file']
 		if file:
 			filename=secure_filename(file.filename)
-			file.save(os.path.join(app.config['CSV_FOLDER'], filename))
-
-			csvString=open(os.path.join(app.config['CSV_FOLDER'], filename),"r").readlines()
-			return render_template('upload.html', retval=csvToMongo(csvString))
+			filepath=os.path.join(app.config['CSV_UPLOAD_DIR'], filename)
+			file.save(filepath)
+			print "Csv Import Request:", filepath
+			csvString=open(os.path.join(app.config['CSV_UPLOAD_DIR'], filename),"r").readlines()
+			imported_csv_row=len(csvToMongo(csvString))
+			print "Result: Target %s, Total %s" % (filename, imported_csv_row)
+			print "Csv Import Finishd"
+			return """{"return":"OK", "inserted":"%s", "filename":"%s","msg":"Upload Successful."}""" % (imported_csv_row, filename)
 	else:
-		return render_template('upload.html')
+		return """{"return":"FAIL", "msg":"Upload failed. Please use POST method"}"""
 
-@app.route("/test/<mystr>")
-def testpage(mystr):
-	# return "my function test %s" % mystr
-	return render_template('analysis.html',mystr=mystr)
+
+@app.route("/download/md5/<md5>", methods=['GET'])
+def fetch_xml(md5):
+	if request.method=="GET":
+		xml_basedir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml'))
+		if request.args.get('filename'):
+			filename = request.args.get('filename') + ".xml"
+		elif md5:
+			filename = md5 + ".xml"
+		filepath = os.path.join(xml_basedir, filename[:2], filename[2:4])
+		if os.path.isfile(filepath):
+			return send_from_directory(filepath, filename, mimetype='application/octet-stream')
+		else:
+			abort(404)
+
+@app.route("/download/check/md5/<md5>", methods=['GET'])
+def check_xml(md5):
+	if request.method=="GET":
+		xml_basedir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml'))
+		if request.args.get('filename'):
+			filename = request.args.get('filename') + ".xml"
+		elif md5:
+			filename = md5 + ".xml"
+		filepath = os.path.join(xml_basedir, filename[:2], filename[2:4])
+		if os.path.isfile(filepath):
+			return """{"return":"ok"}"""
+		else:
+			abort(404)
+
+
+@app.route("/")
+def dashboard():
+	return render_template('dashboard.html')
+
 
 if __name__ == "__main__":
 	app.run("0.0.0.0",debug=True)

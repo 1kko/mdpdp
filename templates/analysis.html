@@ -112,7 +112,7 @@
 			<ul class="nav navbar-nav">
 				<li><a href="/" id="goto_enginediff_main">Dashboard</a></li>
 				<li class="active"><a href="#">Analysis</a></li>
-				<li><a href="/uploadcsv/" id="goto_enginediff_uploader">Upload CSV</a></li>
+				<!-- <li><a href="/uploadcsv/" id="goto_enginediff_uploader">Upload CSV</a></li> -->
 				<li>
 					<div id="toggle_tree_chart" class="col-xs-2" style="margin-top:14px;">
 						<input type="checkbox" id="tree_chart_toggle">
@@ -157,7 +157,10 @@
 			<h4 id="h3_category_title"></h3>
 			<div id="jsonView" class="col-xs-12"></div>
 			<div id="tableView">
-				<button class="btn btn-primary" id="find_common" data-toggle="modal" data-target="#myModal">Find Common</button>
+				<div class="btn-group" role="group">
+					<button class="btn btn-primary" id="find_common" data-toggle="modal" data-target="#myModal">Find Common</button>
+					<button class="btn btn-primary" id="download">Download</button>
+				</div>
 				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
@@ -225,6 +228,35 @@
 
 
 <script>
+
+function MultiDownloadXML(selections, md5keyname) {
+	md5list=[]
+	for (var i in selections) {
+		md5list.push(selections[i][md5keyname]);
+	}
+
+	$.each(md5list, function(key, value) {
+		$.ajax({
+			url:'/download/check/md5/'+value,
+			success: function(data) {
+				$('<iframe></iframe>')
+							.hide()
+							.attr('src', '/download/md5/'+value)
+							.appendTo($('body'))
+							.load(function() {
+								// console.log(response, status, xhr);
+								var that = this;
+								console.log(that);
+								setTimeout(function() {
+									$(that).remove();
+								}, 100);
+							});
+			},
+			statusCode: {404: function() { alert(value+".xml file not found"); }}
+		});
+	});
+}
+
 $(document).ready(function(){
 	// $("#goto_enginediff_main").on('click', function() {
 	// 	url = window.location.protocol + '//' + window.location.hostname + "/enginediff/";
@@ -288,6 +320,13 @@ $(document).ready(function(){
 	// reset searchbox.
 	$('#text-search').val("");
 	{% endif %}
+
+	$('#download').on('click', function() {
+		selections=$('#filelist').bootstrapTable('getSelections');
+		// console.log(selections);
+		MultiDownloadXML(selections, "MD5_KEY");
+
+	});
 });
 
 </script>

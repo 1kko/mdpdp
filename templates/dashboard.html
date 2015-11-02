@@ -26,8 +26,6 @@
 	<script src="/static/js/highcharts-3d.js"></script>
 	<script src="/static/js/modules/solid-gauge.js"></script>
 	<script src="/static/js/modules/exporting.js"></script>
-
-
 </head>
 
 <body>
@@ -38,7 +36,7 @@
 			<div class="navbar-header">
 
 				<a class="navbar-brand" rel="home" href="index.php" title="MDPDP">
-				    <img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
+					<img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
 						DPDP <small style="font-size:7px;">designed by ikko</small>
 				</a>
 			</div>
@@ -48,10 +46,10 @@
 				<li class='active'>
 				<a href="/">Dashboard <span class="sr-only">(current)</span></a></li>
 				<li><a href="/analysis/">Analysis</a></li>
-				<li><a href="/uploadcsv/">Upload CSV</a></li>
+				<!-- <li><a href="/uploadcsv/">Upload CSV</a></li> -->
 			</ul>
 			<div class="navbar-right navbar-form">
-	 			<form role='search' method='get' action='search.php'>
+				<form role='search' method='get' action='search.php'>
 					<i class="axi axi-calendar"></i>
 					<div class='form-group'>
 						<input type='text' name='daterange' id='daterange' class='form-control'>
@@ -97,7 +95,7 @@
 		<div class="row">
 			<div class="col-xs-12">
 			<h3><i class="axi axi-settings-input-component"></i> Engine Diff Chart 
-			       <small><input type="checkbox" id="toggle_value"> Show values</small></h3>
+				   <small><input type="checkbox" id="toggle_value"> Show values</small></h3>
 				<div id="chart_EngineDiff"></div>
 			</div>
 		</div>
@@ -116,12 +114,12 @@
 					data-row-style="rowStyle">
 					<thead>
 						<tr>
-					        <th data-sortable="false" data-visible="true" data-field="state" data-checkbox="true">C</th>
+							<th data-sortable="false" data-visible="true" data-field="state" data-checkbox="true">C</th>
 							<th data-sortable="true" data-visible="true"  data-field="Date">Date</th>
 							<th data-sortable="true" data-visible="false" data-field="Name">Name</th>
 							<th data-sortable="true" data-visible="false" data-field="Type">Type</th>
 							<th data-sortable="true" data-visible="true"  data-field="MD5">MD5</th>
-							<th data-sortable="true" data-visible="true" data-field="CRC64">CRC64</th>
+							<th data-sortable="true" data-visible="false" data-field="CRC64">CRC64</th>
 							<th data-sortable="true" data-visible="false" data-field="Size">Size</th>
 							<th data-sortable="true" data-visible="false" data-field="Severity">Severity</th>
 							<th data-sortable="true" data-visible="false"  data-field="Threat_Name">Threat Name</th>
@@ -141,11 +139,12 @@
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-xs-2">
 			<form id="md5listForm" method="POST" action="/md5list/">
 				<!-- <input name="md5listField" type="hidden" id="md5listField"> -->
 			</form>
-			<button class="btn btn-primary" id="sendtoanalysis">Send to Analysis</button>
+			<div class="btn-group" role="group">
+				<button class="btn btn-primary" id="sendtoanalysis">Send to Analysis</button>
+				<button class="btn btn-primary" id="download">Download</button>
 			</div>
 		</div>
 		<!--div class="row">
@@ -180,27 +179,28 @@ function rowStyle(row, index) {
 		// && (row.VirusTotal_Result=="MALICIOUS")
 		&& (row.MDP_VM_Result=="MALICIOUS")
 	) {
-		return { classes: 'info' };
+		return { classes: 'primary' };
 	} else if (
-		   (row.V3_Result=="MALICIOUS")
+		   ( (row.V3_Result=="MALICIOUS") || (row.V3_Result=="SUSPICIOUS") )
 		// || (row.DICA_Result=="MALICIOUS")
 		// || (row.Heimdal_Result=="MALICIOUS")
 		// || (row.VirusTotal_Result=="MALICIOUS")
-		|| (row.MDP_VM_Result=="MALICIOUS")
+		&& (row.MDP_VM_Result=="BENIGN")
 	) {
 		return { classes: 'warning' };
 	} else if (
-		   (row.V3_Result=="SUSPICIOUS")
+		   (row.MDP_VM_Result=="MALICIOUS") && (row.V3_Result=="BENIGN")
 		// || (row.DICA_Result=="SUSPICIOUS")
 		// || (row.Heimdal_Result=="SUSPICIOUS")
 		// || (row.VirusTotal_Result=="SUSPICIOUS")
 	) {
-		return { classes: 'danger' };
+		return { css: "background-color: '#8D5DB8'" };
 	}
 
 
 	return {};
 }
+
 
 function refresh(daterange) {
 	$.ajax({
@@ -249,6 +249,35 @@ function refresh(daterange) {
 	});
 }
 
+
+function MultiDownloadXML(selections, md5keyname) {
+	md5list=[]
+	for (var i in selections) {
+		md5list.push(selections[i][md5keyname]);
+	}
+
+	$.each(md5list, function(key, value) {
+		$.ajax({
+			url:'/download/check/md5/'+value,
+			success: function(data) {
+				$('<iframe></iframe>')
+							.hide()
+							.attr('src', '/download/md5/'+value)
+							.appendTo($('body'))
+							.load(function() {
+								// console.log(response, status, xhr);
+								var that = this;
+								console.log(that);
+								setTimeout(function() {
+									$(that).remove();
+								}, 100);
+							});
+			},
+			statusCode: {404: function() { alert(value+".xml file not found"); }}
+		});
+	});
+}
+
 $(document).ready(function() { 
 	var dateFormat='YYYY/MM/DD'
 	var startDate=moment().add(-1,'months').format(dateFormat);
@@ -280,6 +309,7 @@ $(document).ready(function() {
 
 	refresh(range);
 
+	$('#md5listForm').hide();
 	// $('#md5listForm').attr('action', '/md5list/');
 	$('#sendtoanalysis').on('click', function() {
 		// on click should be fill up form and send to targetUrl
@@ -295,6 +325,16 @@ $(document).ready(function() {
 		// 3. submit form.
 		$('#md5listForm').submit();
 	});
+
+	// DOWNLOAD
+	$('#download').on('click', function() {
+		selections=$('#resultTable').bootstrapTable('getSelections');
+		MultiDownloadXML(selections, "MD5");
+	});
+
 });
+
+
+
 </script>
 </html>

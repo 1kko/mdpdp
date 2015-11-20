@@ -958,6 +958,41 @@ def list_and():
 	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
 
 
+@app.route("/list/or/", methods=['POST','GET'])
+def list_or():
+	if request.method=="POST":
+		print "POST", request.form
+		query = request.args.getlist('query[]')
+		limit = request.args.get('limit')
+		offset= request.args.get('offset')
+		sort  = request.args.get('sort')
+		order = request.args.get('order')
+		search= request.args.get('search')
+		print "POST", query, limit, offset, sort, order, search
+	else:
+		# print "GET", request.args
+		query = request.args.getlist('query[]')
+		limit = request.args.get('limit')
+		offset= request.args.get('offset')
+		sort  = request.args.get('sort')
+		order = request.args.get('order')
+		search= request.args.get('search')
+
+	# global cursor
+	# print "*"*80
+	# print query
+	# limit=request.form.get('limit')
+	queryList=[]
+	for keyval in query:
+		key=keyval.split("=")[0]
+		val=postprocessor(keyval.split("=")[1])
+		queryList.append({key:val})
+	# print "queryList", queryList
+	md5sumlist=col_behavior.distinct('md5sum',{"$or":queryList})
+	# print "OR : md5sumlist", md5sumlist
+	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
+
+
 @app.route("/find/common/", methods=['GET','POST'])
 def find_intersaction_keyval():
 	if request.method=="POST":

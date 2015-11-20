@@ -58,6 +58,16 @@ def startImportZip(zipfilepath):
 	# print "zipfilepath:", zipfilepath
 	zipfilename=os.path.basename(zipfilepath)
 	zipfilepath=os.path.dirname(os.path.abspath(zipfilepath))
+
+	if zipfilename=="report.zip":
+		import datetime
+		# because file is result output of yesterdays' run.
+		yesterday=datetime.datetime.now() - datetime.timedelta(days=1)
+		newfilename=yesterday.strftime('%y%m%d')+"_PE_report.zip"
+		print "Filename is report.zip. Renaming to %s" % newfilename
+		os.rename(os.path.join(zipfilepath, zipfilename), os.path.join(zipfilepath, newfilename))
+		zipfilename=newfilename
+
 	target_zipfile=os.path.join(zipfilepath, zipfilename)
 	target_dirname=os.path.join(zipfilepath, zipfilename.replace("_PE_report.zip",""))
 	print "Target Directory: %s" % target_dirname

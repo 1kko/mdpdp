@@ -388,6 +388,16 @@ $(document).ready(function() {
 
     });
 
+    var md5list=$('#md5liststr').val().split(";");
+    var md5array=[];
+    if (md5list!="") {
+        for (var i in md5list) {
+            md5array.push("md5sum="+md5list[i]);
+        }
+        # console.log(md5list);
+        # console.log(md5array);
+        renderFilelistTable(md5array, '/list/or/');
+    }
 
 
     // After Page Load, trigger "change" event to historyTable.

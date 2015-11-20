@@ -1,0 +1,9 @@
+
+csv upload
+============
+curl --include --form qqfile=@150430_mds2000.csv http://192.168.41.1/mdpdp/enginediff/uploader/upload.php
+
+
+zip upload
+============
+curl --include --form file=@150929_PE_report.zip http://192.168.41.1:5000/remoteupload/zip/

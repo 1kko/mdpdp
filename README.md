@@ -136,3 +136,11 @@ switched to db MDP
 > 
 
 ```
+
+# Operation Failure
+If mongodb returns error of following, you might want to increas ExecBlock
+OperationFailure: database error: Executor error: Overflow sort stage buffered data usage of 33554506 bytes exceeds internal limit of 33554432 bytes
+```
+$ mongo
+> db.adminCommand({setParameter: 1, internalQueryExecMaxBlockingSortBytes: 67108864})
+```

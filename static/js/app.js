@@ -394,8 +394,8 @@ $(document).ready(function() {
         for (var i in md5list) {
             md5array.push("md5sum="+md5list[i]);
         }
-        # console.log(md5list);
-        # console.log(md5array);
+        // console.log(md5list);
+        // console.log(md5array);
         renderFilelistTable(md5array, '/list/or/');
     }
 

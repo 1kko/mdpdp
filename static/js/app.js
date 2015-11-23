@@ -12,6 +12,7 @@ $(document).ready(function() {
             x:10,
             y:55
         },
+        z_index: 2000,
         animate: {
             enter: 'animated fadeInDown',
             exit: 'animated fadeOutRight'
@@ -122,20 +123,27 @@ $(document).ready(function() {
 
     function query_count(query){
         var notify=$.notify({'message':'Counting...'},{'type':'info'});
-        $.ajax({
+        
+        return $.ajax({
             // url:"http://192.168.41.1:28017/MDP/behaviorCollection/?filter_"+q,
             url: "/count/",
             type:"POST",
             dataType:"json",
+            async: false,
             data:{
                 "query": query
             },
             success: function(data) {
+                // console.log("query_count",query);
                 notify.update({'message':'Success','type':'success'});
-                console.log("data",data);
-                append_query_history(query, data, false);
-                addEventsToQueryHistory();
+                // console.log("data",data);
+
+                // append_query_history(query, data, false);
+                // addEventsToQueryHistory();
                 setTimeout(function() { notify.close();},1500);
+                // return data;
+                // retval=data;
+                // return retval;
 
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -143,7 +151,9 @@ $(document).ready(function() {
                 notify.update({'title':'ERROR', 'message':errorThrown, 'type':'danger'});
                 setTimeout(function() { notify.close();},2000);
             }
-        });
+        }).responseJSON;
+        // console.log(retval.responseJSON);
+        // return retval.responseJSON;
     }
 
     function query_count_and(andQueryArray) {
@@ -307,7 +317,9 @@ $(document).ready(function() {
 
     $('#btn-search').on('click',function(){
         var query = $('#text-search').val();
-        query_count(query);
+        var count = query_count(query);
+        append_query_history(query, count, false);
+        addEventsToQueryHistory();
     });
 
     $("#tree_chart_toggle").bootstrapSwitch({'size':'mini', 'onText':'Chart', 'offText':'Tree', 'onColor':'primary', 'offColor':'info'});
@@ -354,6 +366,7 @@ $(document).ready(function() {
             md5array.push(selections[i].MD5_KEY);
         }
 
+        var notify=$.notify({'message':"Loading Data..."},{'type':'info'});
         var jsonString=
         $.ajax({
             type: "POST",
@@ -364,6 +377,8 @@ $(document).ready(function() {
             cache: false,
             dataType: 'json',
             success: function(data) {
+                notify.update({'type':'success','message':'Data load successful'});
+                setTimeout(function() { notify.close();},1500);
                 // console.log(data);
                 tbData=[]
                 for (var key in data) {
@@ -379,24 +394,37 @@ $(document).ready(function() {
                 $('#btnSave').on('click', function(){
                     table=$('#myModalTable').bootstrapTable('getSelections');
                     for (var i in table) {
-                        query_count(table[i]['key']+"="+table[i]['value']);
+                        // TODO: BUG HERE !!!
+                        count=query_count(table[i]['key']+"="+table[i]['value']);
+                        append_query_history(table[i]['key']+"="+table[i]['value'], count, false);
+                        addEventsToQueryHistory();
                     }
+                    $('#myModalTable').bootstrapTable('destroy');
                     $('#btnCloseModal').click();
                 });
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                console.log('error',errorThrown);
+                notify.update({'title':'Error', 'message':errorThrown, 'type':'danger'});
+                setTimeout(function() { notify.close();},2000);
             }
         });
 
     });
 
-    var md5list=$('#md5liststr').val().split(";");
-    var md5array=[];
-    if (md5list!="") {
-        for (var i in md5list) {
-            md5array.push("md5sum="+md5list[i]);
+    var md5list=$('#md5liststr');
+    var md5array=md5list.val().split(";");
+    var queryArray=[];
+    if (md5array.length>0) {
+        for (var i in md5array) {
+            queryArray.push("md5sum="+md5array[i]);
         }
         // console.log(md5list);
         // console.log(md5array);
-        renderFilelistTable(md5array, '/list/or/');
+        renderFilelistTable(queryArray, '/list/or/');
+        // remove value to avoid futher reload.
+        md5list.val("");
+        md5array=[];
     }
 
 

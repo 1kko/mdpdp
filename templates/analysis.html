@@ -282,9 +282,6 @@ $(document).ready(function(){
 	function() {
 		W=$(this).parent().parent().width();
 		$(this).animate({width:W},100).css('word-break','break-all');
-	}).on('focusout',
-	function() {
-		$(this).animate({width:'70%', height:'38px'},200);
 	});
 
 	// var i = 0;
@@ -318,15 +315,15 @@ $(document).ready(function(){
 	$('#btn-search').click();
 	{% endif %}
 
-	{% if md5list %}
-	var md5list=$('#md5liststr').val().split(";");
-	for (var i in md5list) {
-		$('#text-search').val("md5sum="+md5list[i]);
-		$('#btn-search').click();
-	}
-	// reset searchbox.
-	$('#text-search').val("");
-	{% endif %}
+	// {% if md5list %}
+	// var md5list=$('#md5liststr').val().split(";");
+	// for (var i in md5list) {
+	// 	$('#text-search').val("md5sum="+md5list[i]);
+	// 	$('#btn-search').click();
+	// }
+	// // reset searchbox.
+	// $('#text-search').val("");
+	// {% endif %}
 
 	$('#download').on('click', function() {
 		selections=$('#filelist').bootstrapTable('getSelections');

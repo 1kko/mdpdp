@@ -11,8 +11,8 @@ matchbox={}
 dotretval=[]
 
 connection=pymongo.MongoClient("localhost",27017)
-db=connection.MDP
-collection=db.behavior
+db=connection.MDPDP
+collection=db.behavior_PE
 
 def _saveMatch(keyPath, val):
     global matchbox
@@ -111,20 +111,19 @@ def _findNext(common_key_val, queryKey, queryVal):
 
 
 def findCommon(targetList):
+#    print "targetList", targetList
     global matchbox
 
     dicts=[]
-    for i in collection.find(
-            {
-                '$or':
-                [
-                    {'md5sum':targetList[0]},
-                    {'md5sum':targetList[1]}
-                ]
-            }
-    ):
+    query={
+        '$or': [
+                {'md5sum':targetList[0]},
+                {'md5sum':targetList[1]}
+        ]
+    }
+    for i in collection.find(query):
         dicts.append(i)
-
+#    print "dicts",dicts
     t1=dicts[0]
     t2=dicts[1]
     _deepDive(t1, t2)

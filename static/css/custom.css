@@ -1,3 +1,11 @@
+/*@font-face{
+  font-family: 'Mechanical';
+  src: url('../fonts/Mechanical.otf') format("opentype");
+}
+*/
+.monospace {
+  font-family: monospace;
+}
 /*.float-div {
     position:fixed;
     left:0px;

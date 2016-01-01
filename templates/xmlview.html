@@ -1,0 +1,524 @@
+{% extends "layout.html" %}
+{% block title %}{{md5}}{% endblock %}
+{% block head %}
+	{{ super() }}
+	<style>
+	div.controller {
+		display: inline-flex;
+		width: 300px;
+		/*height: 60px;*/
+		text-indent: -9999px;
+		position: fixed;
+		z-index: 99999;
+		right: 10px;
+		bottom: 20px;
+	}
+	body {
+		margin-bottom: 60px;
+	}
+	/* to set ROW Color according to param_id */
+	.rowColor0,
+	.rowColor1,
+	.rowColor2,
+	.rowColor3,
+	.rowColor4 {
+		/*background-color: #bee9f7*/ /* original */
+		background-color: #60767d;
+	}
+	.rowColor5 {
+		/*background-color: #e3f0ca;*/ /* original */
+		background-color: #737a67; 
+	}
+	.rowColor7,
+	.rowColor8,
+	.rowColor9 {
+		/*background-color: #E4D5F5;*/ /* original */
+		background-color: #746c7c;
+	}
+	.rowColor10,
+	.rowColor11,
+	.rowColor13 {
+		/*background-color: #FCECBD;*/ /* original */
+		background-color: #807860;
+	}
+	.rowColor12 {
+		/*background-color: #ffd2c9;*/ /* original */
+		background-color: #826b66;
+	}
+	.rowColor18 {
+		/*background-color: #ffffff;*/ /* original */
+		background-color: #828282;
+	}
+	.rowColor19,
+	.rowColor20,
+	.rowColor21,
+	.rowColor22,
+	.rowColor23,
+	.rowColor24 {
+		/*background-color: #E4D5F5;*/ /* original */
+		background-color: #746c7c;
+	}
+	.rowColor26 {
+		/*background-color: #ffd2c9;*/ /* original */
+		background-color: #826b66;
+	}
+
+
+
+	</style>
+
+	<script src="/static/js/graph_behavior_pid.js"></script>
+{% endblock %}
+{% block content %}
+	{% if md5 %}
+		<div id="htmlContent">
+			<div class="panel panel-default">
+				<div class="panel-heading"><h3 class="panel-title" id="asdInfoTitle"></h3></div>
+				<div class="panel-body" id="asdInfoBody"></div>
+			</div>
+			<div id="flatMDPTable-toolbar">
+				<div class="btn-group">
+					<button class="btn btn-default" id="showTable"><i class="fa fa-table"></i> Show Table</button>
+					<button class="btn btn-default" id="showTree"><i class="fa fa-spinner"></i> Show Tree</button>
+				</div>
+<!-- 				<button class="btn btn-default" id="download"><i class="fa fa-download"></i> Download XML</button>
+ -->
+
+ 				<div class="btn-group">
+					<button type="button" class="btn btn-default" onclick="startDownload('xml')"><i class="fa fa-download"></i> Download XML</button>
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<span class="caret"></span>
+						<span class="sr-only">Toggle Dropdown</span>
+					</button>
+					<ul class="dropdown-menu">
+						<li><a href="javascript:startDownload('xml')">Download XML</a></li>
+						<li><a href="javascript:startDownload('html')">Download HTML</a></li>
+					</ul>
+				</div>
+			</div>
+			<table id="flatMDPTable"
+				data-resizable="true"
+				data-cookie="true"
+				data-cookie-id-table="flatMDPTable"></table>
+			<div id="pidGraph"></div>
+		</div>
+		<div class="controller btn-group">
+			<button class="btn btn-primary" id="submit">Submit</button>
+			<button class="btn btn-warning" id="reset">Reset Selections</button>
+			<button class="btn btn-default" id="close">Close</button>
+		</div>
+	{% endif %}
+
+{% endblock %}
+{% block footer_script %}
+<script>
+
+var md5key=document.location.href.slice(-32);
+
+JSON.unflatten = function(data) {
+    "use strict";
+    if (Object(data) !== data || Array.isArray(data))
+        return data;
+    var result = {}, cur, prop, idx, last, temp;
+    for(var p in data) {
+        cur = result, prop = "", last = 0;
+        do {
+            idx = p.indexOf(".", last);
+            temp = p.substring(last, idx !== -1 ? idx : undefined);
+            cur = cur[prop] || (cur[prop] = (!isNaN(parseInt(temp)) ? [] : {}));
+            prop = temp;
+            last = idx + 1;
+        } while(idx >= 0);
+        cur[prop] = data[p];
+    }
+    return result[""];
+}
+JSON.flatten = function(data) {
+    var result = {};
+    function recurse (cur, prop) {
+        if (Object(cur) !== cur) {
+            result[prop] = cur;
+        } else if (Array.isArray(cur)) {
+             for(var i=0, l=cur.length; i<l; i++)
+                 recurse(cur[i], prop ? prop+"."+i : ""+i);
+            if (l == 0)
+                result[prop] = [];
+        } else {
+            var isEmpty = true;
+            for (var p in cur) {
+                isEmpty = false;
+                recurse(cur[p], prop ? prop+"."+p : p);
+            }
+            if (isEmpty)
+                result[prop] = {};
+        }
+    }
+    recurse(data, "");
+    return result;
+}
+function stringStartsWith (string, prefix) {
+    return string.slice(0, prefix.length) == prefix;
+}
+
+function startDownload(fileType) {
+	MultiDownload([md5key],fileType);
+}
+
+$(document).ready(function(){
+	// hide navigation bar
+	$('.navbar').hide();
+
+	// asdInfo is from window.opener
+	// check analysis.html @ window.filelistTableMD5Events
+	try {
+		$('#asdInfoTitle').text(asdInfo.MD5_KEY);
+	} catch(e) {
+		// console.log(document.location, md5key);
+		var asdInfo={};
+		// ajax fetch from server.
+		$.ajax({
+			url: '/list/and/',
+			dataType:"json",
+			async: false,
+			data: {
+				limit: 1,
+				offset: 0,
+				sort: 'REPORT_PC_COUNT',
+				order: 'desc',
+				query: ['md5sum='+md5key],
+			},
+			success: function(data){
+				// console.log(data);
+				asdInfo=data.rows[0];
+			}, 
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+			console.log('error',errorThrown);
+			}
+		});
+	}
+
+	if (asdInfo.VIRUS_NAME) {
+		label=" <span class='label label-danger'>"+asdInfo.VIRUS_NAME+"</span>";
+	} else if (asdInfo.RESULT_NUMBER == "White") {
+		label=" <span class='label label-success'>"+asdInfo.RESULT_NUMBER+"</span>";
+	} else {
+		label=" <span class='label label-info'>Unknown</span>";
+	}
+
+	$('#asdInfoTitle').html(asdInfo.MD5_KEY+label);
+	var panelText="";
+	$.each(asdInfo, function(key, val) { 
+		key == "sel" ? panelText+="" : panelText+=key+" : "+val+"<br>"; 
+	});
+	$('#asdInfoBody').html(panelText).hide();
+	$('#asdInfoTitle').on('click',function() {
+		$('#asdInfoBody').toggle();
+	});
+
+
+	$.ajax({
+		url:'/detail_one/',
+		method:'post',
+		dataType: 'json',
+		data:{
+			'query':'md5sum='+md5key
+		},
+		success: function(data){
+			// console.log(data);
+			data=$.parseJSON(data)[0];
+			var messages={}
+			if ('data.mdpLog.references.messages' in data.mdpLog.references){
+				$.each(data.mdpLog.references.messages.msg, function(idx, o) {
+					var key=o['@id'],
+					    val=o['text'];
+					messages[key]=val;
+				});
+			} 
+
+			// console.log(messages);
+			var items=[];
+			$.each(data.mdpLog.behavior.behaviorData, function(idx, o) {
+				var _isMDP=o['@behavior_type']=="mdp" ? true : false;
+
+				// tick
+				try { tick=o['@tick']; } catch(e) { tick=undefined;}
+
+				// behavior_type
+				try { behavior_type=o['@behavior_type']; } catch(e) { behavior_type=undefined;}
+
+				// severity
+				try { severity=o['@severity']; } catch(e) { severity=undefined;}
+
+				// category
+				if (_isMDP) {
+					category=o['mdpRule']['ruleSeq'] ? o['mdpRule']['ruleSeq'] : undefined;
+				} else {
+					category=o['target']['@category'] ? o['target']['@category'] : undefined;
+				}
+
+				// param_id
+				try { param_id=o['target']['@param_id']; } catch(e) {	param_id=undefined;	}
+
+				// bc_id
+				try { bc_id=o['target']['@bc_id']; } catch(e) { bc_id=undefined; }
+
+				// rule_id
+				try { rule_id=o['target']['@rule_id']; } catch(e) { rule_id=undefined; }
+
+				// currentProcess
+				try { currentProcess=o['currentProcess']['path']; } catch(e) { currentProcess=undefined; }
+			
+				// mdp_flag
+				if (_isMDP) {
+					mdp_flag=o['mdpRule']['@ref'] ? o['mdpRule']['@ref'] : undefined;
+				} else {
+					mdp_flag=o['MdpFlagDescription']['#text'] ? o['MdpFlagDescription']['#text'] : undefined;
+				}
+				
+				// shortMsg
+				if ('msg' in o) {
+					msgKey  = o['msg'][1]['ref'];
+					shortMsg=messages[msgKey];
+				} else {
+					if (_isMDP){
+						shortMsg=o['mdpRule']['shortMsg'];
+
+					} else {
+						shortMsg=o['shortMsg'] ? o['shortMsg'] : undefined;
+					}
+				}
+
+				// longMsg
+				if ('msg' in o) {
+					msgKey  = o['msg'][0]['ref'];
+					longMsg=messages[msgKey];
+				} else {
+					if (_isMDP){
+						longMsg=o['mdpRule']['longMsg'];
+
+					} else {
+						longMsg=o['longMsg'] ? o['longMsg'] : undefined;
+					}
+				}
+
+				// detailMsg
+				if ('msg' in o) {
+					msgKey  = o['msg'][2]['ref'];
+					detailMsg=messages[msgKey];
+				} else {
+					if (_isMDP){
+						detailMsg=o['mdpRule']['detailMsg'];
+
+					} else {
+						detailMsg=o['detailMsg'] ? o['detailMsg'] : undefined;
+					}
+				}
+
+				items.push({
+					// i
+					id            : idx,
+					// mdpLog.behavior.behaviorData.@tick
+					tick          : tick, 
+					// mdpLog.behavior.behaviorData.@behavior_type
+					behavior_type : behavior_type, 
+					// mdpLog.behavior.behaviorData.@severity
+					severity      : severity, 
+					// mdpLog.behavior.behaviorData.target.@category
+					// mdpLog.behavior.behaviorData.mdpRule.ruleSeq
+					category      : category,
+					// mdpLog.behavior.behaviorData.target.@param_id
+					param_id      : param_id,
+					// mdpLog.behavior.behaviorData.target.@bc_id
+					bc_id         : bc_id,
+					// mdpLog.behavior.behaviorData.target.@rule_id
+					rule_id       : rule_id,
+					// mdpLog.behavior.behaviorData.MdpFlagDescription.#text
+					// mdpLog.behavior.behaviorData.mdpRule.@ref
+					mdp_flag      : mdp_flag,
+					// mdpLog.behavior.behaviorData.currentProcess.path
+					current       : currentProcess,
+					// mdpLog.behavior.behaviorData.shortMsg
+					shortMsg      : shortMsg,
+					// mdpLog.behavior.behaviorData.longMsg
+					longMsg       : longMsg,
+					// mdpLog.behavior.behaviorData.detailMsg
+					detailMsg     : detailMsg,
+					// [object] mdpLog.behavior.behaviorData
+					jsonObj       : o, // row Object for further use in ExpandRow
+				});
+				// console.log(o);
+			});
+
+			$('#flatMDPTable').bootstrapTable({
+					columns: [
+						{ sortable: true, visible: true,  align: 'center', width:'20px',  field: 'id',            title: 'id' },
+						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'tick',          title: 'tick' },
+						{ sortable: true, visible: true,  align: 'center', width:'52px',  field: 'behavior_type', title: 'behavior_type' },
+						{ sortable: true, visible: true,  align: 'center', width:'38px',  field: 'severity',      title: 'severity' },
+						{ sortable: true, visible: true,  align: 'center', width:'40px',  field: 'category',      title: 'category' },
+						{ sortable: true, visible: false, align: 'center', width:'43px',  field: 'param_id',      title: 'param_id' },
+						{ sortable: true, visible: true,  align: 'center', width:'48px',  field: 'bc_id',         title: 'bc_id' },
+						{ sortable: true, visible: true,  align: 'center', width:'40px',  field: 'rule_id',       title: 'rule_id' },
+						{ sortable: true, visible: true,  align: 'left',   width:'200px', field: 'mdp_flag',      title: 'mdp_flag' },
+						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'current',       title: 'current' },
+						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'shortMsg',      title: 'shortMsg' },
+						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'longMsg',       title: 'longMsg' },
+						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'detailMsg',     title: 'detailMsg' },
+					],
+					data: items,
+					detailView: true,
+					classes: 'table table-condensed',
+					sortable: true,
+					search: true,
+					showToggle: true,
+					showColumns: true,
+					toolbar: '#flatMDPTable-toolbar',
+					rowStyle: function(row, index) {
+						var retStyle={}
+						if (row.behavior_type=='mdp'){
+							retStyle={classes:'danger'}
+						} else {
+							retStyle={classes:'rowColor'+row.param_id}
+						}
+						return retStyle;
+					},
+					onClickRow: function(row,$element){
+						rowIndex=$('#flatMDPTable').bootstrapTable('getData').indexOf(row);
+						$('#flatMDPTable').bootstrapTable('expandRow', rowIndex);
+					},
+					onExpandRow: function(index, row, $detail) {
+						// console.log("index",index,"row",row);
+
+						function inputify(key, value) {
+
+							if (jQuery.type(value) in ['object', undefined,'undefined']) {
+								// console.log('skip',key, 'value', value);
+								return '';
+							}
+
+							// refer to startweb.py:1086~1120
+							// key already starts from "mdpLog.behavior.behaviorData.", so following comments are not necessary.
+							// if ( stringStartsWith(key, 'mdpLog.analysisDevice') ||
+							// stringStartsWith(key, 'zmdpLog.targetSample.file') ||
+							// stringStartsWith(key, 'mdpLog.analysisOption') ) {
+							// 	return '';
+							// }
+
+							if ( $.inArray(key, [
+								'@index',
+								'@severity',
+								'@behavior_idx',
+								'@tick',
+								'@id',
+								'detailMsg',
+								'currentProcess.pid',
+								'currentProcess.parentPid',
+								'currentProcess.fileInfo.blockCount',
+								'currentProcess.fileInfo.ctime',
+								'currentProcess.fileInfo.countryCode',
+								'currentProcess.fileInfo.format.#text',
+								'currentProcess.fileInfo.format.@desc',
+								'currentProcess.fileInfo.reputationMsg',
+								'currentProcess.fileInfo.resultNumber.#text',
+								'currentProcess.fileInfo.resultNumber.@desc',
+								'currentProcess.fileInfo.filename',
+								'currentProcess.fileInfo.path',
+								'MdpFlagDescription.@value_0',
+								'MdpFlagDescription.@value_1',
+								'longMsg',
+								'target.fileInfo.reputationMsg',
+								]) >= 0 ) {
+
+								// console.log('skip', key);
+								return '';
+
+							}
+
+							return  '<label class="chkBoxLabel" style="font-weight:normal;">'+
+									   '<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key+'" /> '+
+									   key+' : '+value+
+									'</label><br>';
+						}
+						var selectbox="";
+
+						$.each(JSON.flatten(row.jsonObj),function(key, value){
+							selectbox+=inputify(key, value);
+						});
+
+						$detail.html('<div style="margin-left:20px;">'+selectbox+'</div>');
+
+						$('.chkBox').on('change', function() {
+							// console.log("this",$(this));
+							if ($(this).is(':checked')) {
+								// console.log('adding class');
+								$(this).parent().addClass('highlight');
+							} else {
+								// console.log('removing class');
+								$(this).parent().removeClass('highlight');
+							}
+						});
+					}
+				}
+			);
+
+
+			$('#submit').on('click',function(){
+				var queryList=[]
+				$('input.chkBox:checked').each(function() {
+					key=$(this).data('xmlkey');
+					val=$(this).val();
+					queryList.push(key+"="+val);
+					
+					// if (isNaN(val)){
+					// 	queryList.push(key+"="+val);
+					// 	// queryList.push("{'"+key+"':'"+val+"'}");
+					// } else {
+					// 	queryList.push("{'"+key+"':"+val+"}");
+					// }
+				});
+				// console.log("queryList",queryList);
+				window.opener.prependHistoryTable(queryList);
+				$.notify({
+					message: queryList.length+' item(s) sent to Query History' 
+				},{
+					type:'info',
+					allow_dismiss:true,
+					delay: 2000,
+					animate: {
+						enter: 'animated fadeInDown',
+						exit: 'animated fadeOutUp'
+					}
+				});
+			});
+
+			$('#pidGraph').hide();
+			$('#showTree').on('click',function(){
+				$('#flatMDPTable').hide();
+				$('#pidGraph').html('').show();
+
+				var width=$(document).width()-50;
+				var height=$(document).height()-$('.panel-default').height()-$('#flatMDPTable-toolbar').height()-80;
+				drawPidGraph(data.mdpLog.behavior.behaviorData, "#pidGraph", width, height);
+			});
+			$('#showTable').on('click',function(){
+				$('#flatMDPTable').show();
+				$('#pidGraph').hide();
+				$('#pidGraph').html('');
+			});
+			$('#download').on('click',function(){
+				var md5key=document.location.href.slice(-32);
+				MultiDownload([md5key],'xml');
+			})
+
+			$('#reset').on('click',function(){
+				$('.chkBox:checked').trigger('click');//removeAttr('checked');
+			});
+
+			$('#close').on('click',function(){
+				window.close();
+			});
+		}
+	});
+});
+</script>
+{% endblock %}

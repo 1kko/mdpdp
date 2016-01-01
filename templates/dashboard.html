@@ -1,92 +1,20 @@
-
-<!DOCTYPE html>
-<html lang="kr">
-<meta charset = "utf-8">
-<head>
-	<title>EngineDiff - ikko</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-slate.min.css">
-
-	<!-- <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css"> -->
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-table.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/axicon/axicon.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/css/fileuploader.css" >
-	<link rel="stylesheet" type="text/css" href="/static/css/daterangepicker-bs3.css" >
-	<link rel="stylesheet" type="text/css" href="/static/css/custom.css" >
-	<script src="/static/js/jquery-1.11.2.min.js"></script>
-	<script src="/static/js/jquery-migrate-1.2.1.min.js"></script>
-	<script src="/static/js/bootstrap.min.js"></script>
-	<script src="/static/js/bootstrap-table.min.js"></script>
-	<script src="/static/js/moment.min.js"></script>
-	<script src="/static/js/daterangepicker.js"></script>
-	<script src="/static/js/highcharts.js"></script>
-	<script src="/static/js/highcharts-more.js"></script>
-	<script src="/static/js/highcharts.theme.js"></script>
-	<script src="/static/js/highcharts-3d.js"></script>
-	<script src="/static/js/modules/solid-gauge.js"></script>
-	<script src="/static/js/modules/exporting.js"></script>
-</head>
-
-<body>
-
-	<nav class="navbar navbar-default navbar-fixed-top">
-		<div class="container-fluid">
-			<!-- Brand and toggle get grouped for better mobile display -->
-			<div class="navbar-header">
-
-				<a class="navbar-brand" rel="home" href="index.php" title="MDPDP">
-					<img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
-						DPDP <small style="font-size:7px;">designed by ikko</small>
-				</a>
-			</div>
-
-			<!-- Collect the nav links, forms, and other content for toggling -->
-			<ul class="nav navbar-nav">
-				<li class='active'>
-				<a href="/">Dashboard <span class="sr-only">(current)</span></a></li>
-				<li><a href="/analysis/">Analysis</a></li>
-				<!-- <li><a href="/uploadcsv/">Upload CSV</a></li> -->
-			</ul>
-			<div class="navbar-right navbar-form">
-				<form role='search' method='get' action='search.php'>
-					<i class="axi axi-calendar"></i>
-					<div class='form-group'>
-						<input type='text' name='daterange' id='daterange' class='form-control'>
-					</div>
-				</form>
-			</div>
-
-		</div><!-- /.container-fluid -->
-	</nav>
-
-
-
-
-
-	<div class="container">
+{% extends "layout.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}
+	{{ super() }}
+{% endblock %}
+{% block content %}
+	<div class="container-fluid" style="margin-top:35px;">
 		<div class="row">
 			<div class="col-xs-12 col-sm-12 col-md-4">
-				<h3><i class="axi axi-center-focus-weak"></i> Overall</h3>
+				<h3><i class="fa fa-crosshairs"></i> Overall</h3>
 				<div id="chart_Overall"></div>
 			</div>
 			<div class="col-xs-12 col-sm-12 col-md-8">
-				<h3><i class="axi axi-dashboard2"></i> Detection Score</h3>
-				<!-- <div class="col-xs-12 col-sm-6 col-md-4">
-					<div id="chart_DICARate"></div>
-				</div>
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div id="chart_HeimdalRate"></div>
-				</div>
-				-->
+				<h3><i class="fa fa-dashboard"></i> Detection Score</h3>
 				<div class="col-xs-12 col-sm-6 col-md-6">
 					<div id="chart_V3Rate"></div>
 				</div>
-				<!--
-				<div class="col-xs-12 col-sm-6 col-md-4">
-					<div id="chart_VirusTotalRate"></div>
-				</div>
-				-->
 				<div class="col-xs-12 col-sm-6 col-md-6">
 					<div id="chart_MDP_VMRate"></div>
 				</div>
@@ -94,14 +22,31 @@
 		</div>
 		<div class="row">
 			<div class="col-xs-12">
-			<h3><i class="axi axi-settings-input-component"></i> Engine Diff Chart 
+			<h3><i class="fa fa-bar-chart"></i> Engine Diff Chart 
 				   <small><input type="checkbox" id="toggle_value"> Show values</small></h3>
 				<div id="chart_EngineDiff"></div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-xs-12">
+				<div id="resultTable-toolbar">
+					<div class="btn-group" role="group">
+						<button class="btn btn-default" id="sendtoanalysis"><i class="fa fa-search-plus"></i> Send to Analysis</button>
+					</div>
+	 				<div class="btn-group">
+						<button type="button" class="btn btn-default" onclick="startDownload('xml')"><i class="fa fa-download"></i> Download XML</button>
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="caret"></span>
+							<span class="sr-only">Toggle Dropdown</span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a href="javascript:startDownload('xml')">Download XML</a></li>
+							<li><a href="javascript:startDownload('html')">Download HTML</a></li>
+						</ul>
+					</div>
+				</div>
 				<table id="resultTable"
+					class="bootstrapTable"
 					data-show-columns="true"
 					data-click-to-select="true"
 					data-pagination="true"
@@ -111,94 +56,81 @@
 					data-striped="true"
 					data-page-size="100"
 					data-page-list="[100,200,500,1000,All]"
-					data-row-style="rowStyle">
+					data-show-export="true"
+					data-row-style="rowStyle"
+					
+					data-cookie="true"
+					data-cookie-id-table="resultTable"
+					data-advanced-search="true"
+					data-id-table="resultTable"
+					data-maintain-selected="true"
+					data-show-multi-sort="true" 
+					data-reorderable-columns="true"
+					data-resizable="true"
+
+					data-toolbar="#resultTable-toolbar"
+
+					>
+
 					<thead>
 						<tr>
-							<th data-sortable="false" data-visible="true" data-field="state" data-checkbox="true">C</th>
-							<th data-sortable="true" data-visible="true"  data-field="Date">Date</th>
-							<th data-sortable="true" data-visible="false" data-field="Name">Name</th>
-							<th data-sortable="true" data-visible="false" data-field="Type">Type</th>
-							<th data-sortable="true" data-visible="true"  data-field="MD5">MD5</th>
-							<th data-sortable="true" data-visible="false" data-field="CRC64">CRC64</th>
-							<th data-sortable="true" data-visible="false" data-field="Size">Size</th>
-							<th data-sortable="true" data-visible="false" data-field="Severity">Severity</th>
-							<th data-sortable="true" data-visible="false"  data-field="Threat_Name">Threat Name</th>
-							<th data-sortable="true" data-visible="false"  data-field="DICA_Result">DICA Result</th>
-							<th data-sortable="true" data-visible="false" data-field="DICA_Reason">DICA Reason</th>
-							<th data-sortable="true" data-visible="true"  data-field="MDP_VM_Result">MDP Result</th>
-							<th data-sortable="true" data-visible="true" data-field="MDP_VM_Reason">MDP Reason</th>
-							<th data-sortable="true" data-visible="true" data-field="V3_Result">V3 Result</th>
-							<th data-sortable="true" data-visible="true" data-field="V3_Reason">V3 Reason</th>
-							<th data-sortable="true" data-visible="false"  data-field="Heimdal_Result">Heimdal Result</th>
-							<th data-sortable="true" data-visible="false" data-field="Heimdal_Reason">Heimdal Reason</th>
-							<th data-sortable="true" data-visible="false"  data-field="VirusTotal_Result">VirusTotal Result</th>
-							<th data-sortable="true" data-visible="false" data-field="VirusTotal_Reason">VirusTotal Reason</th>
+							<th data-sortable = "false" data-visible="true"  data-field="state"    data-checkbox="true">C</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="Date"     data-width="96px">Date</th>
+							<th data-sortable = "true"  data-visible="false" data-field="Name">Name</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="Type"     data-width="80px">Type</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="MD5"      data-width="260px">MD5</th>
+							<th data-sortable = "true"  data-visible="false" data-field="CRC64">CRC64</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="Size"     data-width="80px" data-align="right">Size</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="Severity" data-width="98px" data-align="right">Severity</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="Threat_Name">Threat Name</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="MDP_VM_Result"              data-width="124px">MDP Result</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="MDP_VM_Reason">MDP Reason</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="V3_Result"                  data-width="124px">V3 Result</th>
+							<th data-sortable = "true"  data-visible="true"  data-field="V3_Reason">V3 Reason</th>
+							<th data-sortable = "true"  data-visible="false" data-field="VirusTotal_Result">VirusTotal Result</th>
+							<th data-sortable = "true"  data-visible="false" data-field="VirusTotal_Reason">VirusTotal Reason</th>
 						</tr>
 					</thead>
 				</table>
 			</div>
 		</div>
 		<div class="row">
-			<form id="md5listForm" method="POST" action="/md5list/">
+			<form id="md5listForm" method="POST" action="/analysis/md5list/" style="display:none;">
 				<!-- <input name="md5listField" type="hidden" id="md5listField"> -->
 			</form>
-			<div class="btn-group" role="group">
-				<button class="btn btn-primary" id="sendtoanalysis">Send to Analysis</button>
-				<button class="btn btn-primary" id="download">Download</button>
-			</div>
 		</div>
-		<!--div class="row">
-			<div class="col-xs-12">
-			<h3><i class="axi axi-ion-document"></i> DICA Version Chart</h3>
-				<div id="chart_DICA"></div>
-			</div>
-		</div-->
 	</div>
-<footer>
-	<?php include('common/footer.php'); ?>
-</footer>
-</body>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block footer_script %}
 
 <script type="text/javascript" src="/static/js/chart_diff.js"></script>
-<!--script type="text/javascript" src="js/chart_dica.js"></script-->
 <script type="text/javascript" src="/static/js/chart_rate.js"></script>
 <script type="text/javascript" src="/static/js/chart_overall.js"></script>
 
 <script>
 
-function mdpdpQuery(value, row, index) {
-	url = window.location.protocol + '//' + window.location.hostname + ':5000' + '/query/md5sum=' + row.MD5;
-	return "<a href='"+url+"'>" + value + "</a>";
-}
-
 function rowStyle(row, index) {
    if ( 
 		   (row.V3_Result=="MALICIOUS")
-		// && (row.DICA_Result=="MALICIOUS")
-		// && (row.Heimdal_Result=="MALICIOUS")
-		// && (row.VirusTotal_Result=="MALICIOUS")
 		&& (row.MDP_VM_Result=="MALICIOUS")
 	) {
-		return { classes: 'primary' };
+		return { classes: 'primary monospace' };
 	} else if (
 		   ( (row.V3_Result=="MALICIOUS") || (row.V3_Result=="SUSPICIOUS") )
-		// || (row.DICA_Result=="MALICIOUS")
-		// || (row.Heimdal_Result=="MALICIOUS")
-		// || (row.VirusTotal_Result=="MALICIOUS")
 		&& (row.MDP_VM_Result=="BENIGN")
 	) {
-		return { classes: 'warning' };
+		return { classes: 'warning monospace' };
 	} else if (
 		   (row.MDP_VM_Result=="MALICIOUS") && (row.V3_Result=="BENIGN")
-		// || (row.DICA_Result=="SUSPICIOUS")
-		// || (row.Heimdal_Result=="SUSPICIOUS")
-		// || (row.VirusTotal_Result=="SUSPICIOUS")
 	) {
-		return { css: "background-color: '#8D5DB8'" };
+		return { css: "background-color: '#8D5DB8'", classes: 'monospace' };
 	}
 
 
-	return {};
+	return { classes: 'monospace' };
 }
 
 
@@ -211,14 +143,6 @@ function refresh(daterange) {
 			loadDiffChart(data);
 		}
 	});
-
-	//$.ajax({
-	//	url:"/fetch/?type=DICAVersions&daterange="+daterange,
-	//	dataType:"json",
-	//	success: function(data) {
-	//		loadDICAChart(data);
-	//	}
-	//});
 
 	$.ajax({
 		url:"/fetch/AllRate/?daterange="+daterange,
@@ -249,33 +173,15 @@ function refresh(daterange) {
 	});
 }
 
-
-function MultiDownloadXML(selections, md5keyname) {
-	md5list=[]
-	for (var i in selections) {
-		md5list.push(selections[i][md5keyname]);
+function startDownload(fileType){
+	var md5keys=$.map($('#resultTable').bootstrapTable('getSelections'), function(o){ return o.MD5; });
+	console.log("md5keys",md5keys);
+	if ( md5keys.length > 0 ) {
+		MultiDownload(md5keys,fileType);
+	} else {
+		alert("Please select files.");
 	}
 
-	$.each(md5list, function(key, value) {
-		$.ajax({
-			url:'/download/check/md5/'+value,
-			success: function(data) {
-				$('<iframe></iframe>')
-							.hide()
-							.attr('src', '/download/md5/'+value)
-							.appendTo($('body'))
-							.load(function() {
-								// console.log(response, status, xhr);
-								var that = this;
-								console.log(that);
-								setTimeout(function() {
-									$(that).remove();
-								}, 100);
-							});
-			},
-			statusCode: {404: function() { alert(value+".xml file not found"); }}
-		});
-	});
 }
 
 $(document).ready(function() { 
@@ -309,32 +215,43 @@ $(document).ready(function() {
 
 	refresh(range);
 
-	$('#md5listForm').hide();
+	$('#daterange').on('enter', function(){ refresh(range); });
+
 	// $('#md5listForm').attr('action', '/md5list/');
 	$('#sendtoanalysis').on('click', function() {
 		// on click should be fill up form and send to targetUrl
+		
 		// 1. get selection from table, and fill up #md5list
-		var selections=$('#resultTable').bootstrapTable('getSelections');
-		console.log(selections);
-		var md5list="";
-		for (var i in selections) {
-			// 2. append inputfield and fill up
-			// $('#md5listField').val(md5list);
-			$("<input type='hidden' name='md5list[]' value='"+selections[i]['MD5']+"' />").appendTo('#md5listForm');
-		}
+		var md5keys=$.map($('#resultTable').bootstrapTable('getSelections'),function(o){ return o.MD5;});
+		// console.log(md5keys);
+
+		// 2. append inputfield and fill up
+		$.each(md5keys,function(idx, md5key){
+			$("<input>").attr(
+				'type','hidden').attr(
+				'name','md5list[]').attr(
+				'value',md5key
+			).appendTo('#md5listForm');
+		});
+
+
 		// 3. submit form.
 		$('#md5listForm').submit();
 	});
 
 	// DOWNLOAD
 	$('#download').on('click', function() {
-		selections=$('#resultTable').bootstrapTable('getSelections');
-		MultiDownloadXML(selections, "MD5");
+		var md5keys=$.map($('#resultTable').bootstrapTable('getSelections'), function(o){ return o.MD5; });
+		// console.log(md5keys);
+		MultiDownload(md5keys,'xml');
+	});
+
+	$('#resultTable').bootstrapTable('refreshOptions', {
+		// exportDataType can be '', 'all', 'selected'
+		exportDataType: 'selected'
 	});
 
 });
 
-
-
 </script>
-</html>
+{% endblock %}

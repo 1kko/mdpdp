@@ -2,12 +2,12 @@
 # -*- coding: UTF-8 -*-
 # coding=utf-8
 
-from flask import Flask, render_template, request, url_for, Response, redirect, send_from_directory, abort
+from flask import Flask, render_template, request, url_for, Response, redirect, send_from_directory, abort, jsonify
 import flask.ext.login as flask_login
 import os
 from werkzeug import secure_filename
-import pymongo, json
 from bson import json_util
+import pymongo, json
 from peewee import *
 from playhouse.pool import MySQLDatabase
 import threading
@@ -15,12 +15,13 @@ import sys
 from dateutil.parser import parse as dateParser
 from datetime import datetime
 import time
+import pytz
 
 # sys.path.insert(0, '/home/ikko/repo/mdpdp/')
 import importer
 from reversediff import findCommon
 
-connection=pymongo.MongoClient("localhost",27017)
+connection=pymongo.MongoClient("localhost",27017,tz_aware=True)
 MDPMongoDB=connection.MDPDP
 col_behavior=MDPMongoDB.behavior_PE
 col_enginediff=MDPMongoDB.enginediff_PE
@@ -48,56 +49,56 @@ login_manager.init_app(app)
 #     assert request.method == 'POST'
 
 class UnknownField(object):
-    pass
+	pass
 
 class BaseModel(Model):
-    class Meta:
-        database = database
+	class Meta:
+		database = database
 
 class MedFile(BaseModel):
-    av_scan = TextField(db_column='AV_Scan')
-    ctime = DateTimeField(db_column='CTIME')
-    file_name = TextField(db_column='File_Name')
-    file_tag = CharField(db_column='File_Tag')
-    md5_key = CharField(db_column='MD5_Key', index=True)
-    mdp_rule = TextField(db_column='MDP_Rule')
-    report_pc_count = IntegerField(db_column='REPORT_PC_Count')
-    result_number = TextField(db_column='Result_Number')
-    saved_size = IntegerField(db_column='Saved_Size')
-    sign_credit = IntegerField(db_column='Sign_Credit')
-    virus_name = TextField(db_column='Virus_Name')
-    idx = PrimaryKeyField()
-    class Meta:
-        db_table = 'med_file'
+	av_scan = TextField(db_column='AV_Scan')
+	ctime = DateTimeField(db_column='CTIME')
+	file_name = TextField(db_column='File_Name')
+	file_tag = CharField(db_column='File_Tag')
+	md5_key = CharField(db_column='MD5_Key', index=True)
+	mdp_rule = TextField(db_column='MDP_Rule')
+	report_pc_count = IntegerField(db_column='REPORT_PC_Count')
+	result_number = TextField(db_column='Result_Number')
+	saved_size = IntegerField(db_column='Saved_Size')
+	sign_credit = IntegerField(db_column='Sign_Credit')
+	virus_name = TextField(db_column='Virus_Name')
+	idx = PrimaryKeyField()
+	class Meta:
+		db_table = 'med_file'
 
 class User(flask_login.UserMixin):
-    pass
+	pass
 
 
 @login_manager.user_loader
 def user_loader(email):
-    if email not in users:
-        return
+	if email not in users:
+		return
 
-    user = User()
-    user.id = email
-    return user
+	user = User()
+	user.id = email
+	return user
 
 
 @login_manager.request_loader
 def request_loader(request):
-    email = request.form.get('email')
-    if email not in users:
-        return
+	email = request.form.get('email')
+	if email not in users:
+		return
 
-    user = User()
-    user.id = email
+	user = User()
+	user.id = email
 
-    # DO NOT ever store passwords in plaintext and always compare password
-    # hashes using constant-time comparison!
-    user.is_authenticated = request.form['pw'] == users[email]['pw']
+	# DO NOT ever store passwords in plaintext and always compare password
+	# hashes using constant-time comparison!
+	user.is_authenticated = request.form['pw'] == users[email]['pw']
 
-    return user
+	return user
 
 def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 
@@ -110,62 +111,67 @@ def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 	# print "limit:", limit
 	# print "offset:", offset
 
-	if search!=None:
-		queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist) & \
-			(\
-				MedFile.md5_key.contains(search) | \
-				MedFile.file_name.contains(search) | \
-				MedFile.virus_name.contains(search) | \
-				MedFile.file_tag.contains(search)
-			)\
-		)
+	if len(md5sumlist) == 0 :
+		retval={'total':0, 'rows':[]}
+
 	else:
-		queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist))
 
-	if sort: 
-		if sort=="MD5_KEY": 
-			queryColumn=MedFile.md5_key
-		if sort=="FILE_NAME": 
-			queryColumn=MedFile.file_name
-		if sort=="RESULT_NUMBER": 
-			queryColumn=MedFile.result_number
-		if sort=="VIRUS_NAME": 
-			queryColumn=MedFile.virus_name
-		if sort=="SIGN_CREDIT": 
-			queryColumn=MedFile.sign_credit
-		if sort=="REPORT_PC_COUNT": 
-			queryColumn=MedFile.report_pc_count
-		if sort=="SAVED_SIZE": 
-			queryColumn=MedFile.saved_size
-		if sort=="FILE_TAG": 
-			queryColumn=MedFile.file_tag
-		if sort=="CTIME": 
-			queryColumn=MedFile.ctime
-			
-		if order=="desc":
-			queryResult=queryResult.order_by(queryColumn.desc())
+		if search!=None:
+			queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist) & \
+				(\
+					MedFile.md5_key.contains(search) | \
+					MedFile.file_name.contains(search) | \
+					MedFile.virus_name.contains(search) | \
+					MedFile.file_tag.contains(search)
+				)\
+			)
 		else:
-			queryResult=queryResult.order_by(queryColumn.asc())
+			queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist))
 
-	# queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist)).limit(limit).offset(offset).order_by(order)
+		if sort: 
+			if sort=="MD5_KEY": 
+				queryColumn=MedFile.md5_key
+			if sort=="FILE_NAME": 
+				queryColumn=MedFile.file_name
+			if sort=="RESULT_NUMBER": 
+				queryColumn=MedFile.result_number
+			if sort=="VIRUS_NAME": 
+				queryColumn=MedFile.virus_name
+			if sort=="SIGN_CREDIT": 
+				queryColumn=MedFile.sign_credit
+			if sort=="REPORT_PC_COUNT": 
+				queryColumn=MedFile.report_pc_count
+			if sort=="SAVED_SIZE": 
+				queryColumn=MedFile.saved_size
+			if sort=="FILE_TAG": 
+				queryColumn=MedFile.file_tag
+			if sort=="CTIME": 
+				queryColumn=MedFile.ctime
+				
+			if order=="desc":
+				queryResult=queryResult.order_by(queryColumn.desc())
+			else:
+				queryResult=queryResult.order_by(queryColumn.asc())
 
-	rows=[]
-	for row in queryResult.limit(limit).offset(offset):
-		# print "row.report_pc_count:", row.report_pc_count
-		rows.append(\
-			{"MD5_KEY":row.md5_key, \
-			 "FILE_NAME": row.file_name, \
-			 "RESULT_NUMBER":row.result_number, \
-			 "VIRUS_NAME":row.virus_name,\
-			 "SIGN_CREDIT":str(row.sign_credit), \
-			 "REPORT_PC_COUNT":str(row.report_pc_count), \
-			 "SAVED_SIZE":str(row.saved_size), \
-			 "FILE_TAG":row.file_tag, \
-			 "CTIME":str(row.ctime)\
-		})
+		# queryResult=MedFile.select().where(MedFile.md5_key.in_(md5sumlist)).limit(limit).offset(offset).order_by(order)
 
-	total=queryResult.count()
-	retval={'total':total, 'rows':rows}
+		rows=[]
+		for row in queryResult.limit(limit).offset(offset):
+			# print "row.report_pc_count:", row.report_pc_count
+			rows.append(\
+				{"MD5_KEY":row.md5_key, \
+				 "FILE_NAME": row.file_name, \
+				 "RESULT_NUMBER":row.result_number, \
+				 "VIRUS_NAME":row.virus_name,\
+				 "SIGN_CREDIT":str(row.sign_credit), \
+				 "REPORT_PC_COUNT":str(row.report_pc_count), \
+				 "SAVED_SIZE":str(row.saved_size), \
+				 "FILE_TAG":row.file_tag, \
+				 "CTIME":str(row.ctime)\
+			})
+
+		total=queryResult.count()
+		retval={'total':total, 'rows':rows}
 	return json.dumps(retval, default=json_util.default)
 
 
@@ -177,17 +183,20 @@ def allowed_file(filename):
 
 
 def postprocessor(value):
+	import HTMLParser
 	try:
-		# print "key:",key
 		return int(value)
 	except (ValueError, TypeError):
+		# print "not num: escaped value", value
 
-		try:
-			if (value.lower()=="true") or (value.lower()=="false"):
-				value=bool(value)
-			return value
-		except:
-			return value
+		
+		if (value.lower()=="true"):
+			return True
+		elif (value.lower()=="false"):
+			return False
+
+		return HTMLParser.HTMLParser().unescape(value)
+		# return value
 
 
 def getDaterange(input_daterange):
@@ -229,17 +238,17 @@ def getTotalPerDay(daterange):
 def sortList(seq, idfun=None): 
    # order preserving
    if idfun is None:
-       def idfun(x): return x
+	   def idfun(x): return x
    seen = {}
    result = []
    for item in seq:
-       marker = idfun(item)
-       # in old Python versions:
-       # if seen.has_key(marker)
-       # but in new ones:
-       if marker in seen: continue
-       seen[marker] = 1
-       result.append(item)
+	   marker = idfun(item)
+	   # in old Python versions:
+	   # if seen.has_key(marker)
+	   # but in new ones:
+	   if marker in seen: continue
+	   seen[marker] = 1
+	   result.append(item)
    return result
 
 def getArrayPerDay(query, daterange):
@@ -267,6 +276,8 @@ def getArrayPerDay(query, daterange):
 		chartCount.append([chartNsec, size])
 
 	return chartCount
+
+
 
 
 def getTotalMaliciousCountArrayPerDay(query, daterange=None):
@@ -622,6 +633,7 @@ def csvToJson(csvString):
 
 
 def csvToMongo(csvString):
+	Seoul=pytz.timezone('Asia/Seoul')
 	data=csvToJson(csvString)
 	# print data
 	# data=json.dumps(jsonData)
@@ -642,7 +654,7 @@ def csvToMongo(csvString):
 			elem['CRC64']=None
 
 		# Processing From here.
-		Date=elem['Date']
+		Date=Seoul.localize(elem['Date'])
 		elem.pop('Date')
 
 		File={
@@ -758,10 +770,49 @@ def csvToMongo(csvString):
 		mongoRetval.append(col_enginediff.insert(retval))
 	return mongoRetval
 
+def escapeHtml(s, quote=None):
+	'''Replace special characters "&", "<" and ">" to HTML-safe sequences.
+	If the optional flag quote is true, the quotation mark character (")
+is also translated.'''
+	# if type(s) == type(str()):
+	try:
+		s = s.replace("&", "&amp;") # Must be done first!
+		s = s.replace("<", "&lt;")
+		s = s.replace(">", "&gt;")
+		s = s.replace('"', "&quot;")
+		s = s.replace("'", "&#39;")
+		return s
+	except:
+		return s
+
+
+def queryToDict(query):
+	try:
+		Query=query
+		if query.startswith(" "):
+			Query=query[1:]
+
+		# if key starts with { it means it's json type.
+		if Query.startswith("{"):
+			key, val=json.loads(query.replace("'","\"")).items()[0]
+		else:
+		# otherwise it means it's aaa.bb.cc=ccc type
+			idx=Query.find("=")
+			key=Query[:idx]
+			val=Query[idx+1:]
+		
+		Val=postprocessor(val)
+		retval={key:Val}
+
+		print "retval",retval
+		return retval
+	except:
+		raise
+
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return 'Unauthorized'
+	return 'Unauthorized'
 
 
 @app.route("/fetch/enginerate/<engineName>")
@@ -805,35 +856,35 @@ def fetchEngineDiff():
 
 @app.route("/login", methods=['POST', 'GET'])
 def login():
-    if request.method == 'GET':
-        return '''
-               <form action='login' method='POST'>
-                <input type='text' name='email' id='email' placeholder='email'></input>
-                <input type='password' name='pw' id='pw' placeholder='password'></input>
-                <input type='submit' name='submit'></input>
-               </form>
-               '''
+	if request.method == 'GET':
+		return '''
+			   <form action='login' method='POST'>
+				<input type='text' name='email' id='email' placeholder='email'></input>
+				<input type='password' name='pw' id='pw' placeholder='password'></input>
+				<input type='submit' name='submit'></input>
+			   </form>
+			   '''
 
-    email = request.form['email']
-    if request.form['pw'] == users[email]['pw']:
-        user = User()
-        user.id = email
-        flask_login.login_user(user)
-        return redirect(url_for('protected'))
+	email = request.form['email']
+	if request.form['pw'] == users[email]['pw']:
+		user = User()
+		user.id = email
+		flask_login.login_user(user)
+		return redirect(url_for('protected'))
 
-    return 'Bad login'
+	return 'Bad login'
 
 
 @app.route('/protected')
 @flask_login.login_required
 def protected():
-    return 'Logged in as: ' + flask_login.current_user.id
+	return 'Logged in as: ' + flask_login.current_user.id
 
 
 @app.route('/logout')
 def logout():
-    flask_login.logout_user()
-    return 'Logged out'
+	flask_login.logout_user()
+	return 'Logged out'
 
 
 @app.route("/analysis/")
@@ -846,7 +897,7 @@ def startpage(query):
 	return render_template('analysis.html', query=query)
 
 
-@app.route("/md5list/", methods=['POST'])
+@app.route("/analysis/md5list/", methods=['POST'])
 def md5list():
 	query=request.form.getlist('md5list[]')
 	return render_template('analysis.html', md5list=";".join(query))
@@ -855,9 +906,16 @@ def md5list():
 @app.route("/count/", methods=['POST'])
 def count():
 	query=request.form.get('query')
-	key=query.split("=")[0]
-	val=postprocessor(query.split("=")[1])
-	data=col_behavior.find({key:val}).count()
+	print query
+	# try:
+	# 	key=query.split("=")[0][1:]
+	# 	val=postprocessor(query.split("=")[1])
+	# 	data=col_behavior.find({key:val}).count()
+	# 	print "key",key,"val",val,"data",data
+	# except:
+	# 	data=col_behavior.find(json.loads(query.replace("'","\""))).count()
+	data=col_behavior.find(queryToDict(query)).count()
+
 	return json.dumps(data, default=json_util.default)
 
 
@@ -865,11 +923,19 @@ def count():
 def count_and():
 	query=request.form.getlist('query[]')
 	queryList=[]
+	print "queries: %s" % query
+
 	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
+		# try:
+		# 	key=keyval.split("=")[0]
+		# 	val=postprocessor(keyval.split("=")[1])
+		# 	queryList.append({key:val})
+		# except:
+		# 	queryList.append(json.loads(keyval.replace("'","\"")))
+		queryList.append(queryToDict(keyval))
 	data=col_behavior.find({"$and":queryList}).count()
+
+
 	return json.dumps(data, default=json_util.default)
 
 
@@ -877,10 +943,15 @@ def count_and():
 def detail_one():
 	query=request.form.get('query')
 	# print request.form
-	key=query.split("=")[0]
-	val=postprocessor(query.split("=")[1])
-	data=col_behavior.find_one({key:val})
-	return json.dumps(data, default=json_util.default)	
+	# key=query.split("=")[0]
+	# val=postprocessor(query.split("=")[1])
+
+	# data=json_util.dumps(col_behavior.find({key:val}).sort('mdpLog.behavior.behaviorData.@tick',1))
+	data=json_util.dumps(col_behavior.find(queryToDict(query)).sort('mdpLog.behavior.behaviorData.@tick',1))
+	# print "data", data
+	# mola mola
+	return json_util.dumps(data)
+	# return data
 
 
 @app.route("/detail_one/and/", methods=['POST'])
@@ -888,10 +959,12 @@ def detail_one_and():
 	query=request.form.getlist('query[]')
 	queryList=[]
 	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
-	data=col_behavior.find_one({"$and":queryList})
+		# key=keyval.split("=")[0]
+		# val=postprocessor(keyval.split("=")[1])
+		# queryList.append({key:val})
+		queryList.append(queryToDict(keyval))
+
+	data=col_behavior.find({"$and":queryList}).sort({'mdpLog.behavior.behaviorData.@tick':1})
 	return json.dumps(data, default=json_util.default)
 
 
@@ -914,15 +987,17 @@ def list():
 		order = request.args.get('order')
 		search= request.args.get('search')
 
-	try:
-		key=query.split("=")[0]
-		val=postprocessor(query.split("=")[1])
-	except:
-		key=query.split("%\3D")[0]
-		val=postprocessor(query.split("%\3D")[1])
+	# try:
+	# 	key=query.split("=")[0]
+	# 	val=postprocessor(query.split("=")[1])
+	# except:
+	# 	key=query.split("%\3D")[0]
+	# 	val=postprocessor(query.split("%\3D")[1])
 
 	# data from mongodb
-	md5sumlist=col_behavior.find({key:val}).distinct("md5sum")
+	# md5sumlist=col_behavior.find({key:val}).distinct("md5sum")
+	md5sumlist=col_behavior.find(queryToDict(query)).distinct("md5sum")
+	
 	# print "search", search
 	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
 
@@ -947,13 +1022,17 @@ def list_and():
 		search= request.args.get('search')
 
 	# global cursor
-	# print query
+	print "query", query
 	# limit=request.form.get('limit')
 	queryList=[]
-	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
+	try:
+		for keyval in query:
+			queryList.append(queryToDict(keyval))
+			print "queryList", queryList
+	# if query list is singlular
+	except OperationFailure:
+		queryList.append(queryToDict(query))
+
 	md5sumlist=col_behavior.find({"$and":queryList}).distinct("md5sum")
 	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
 
@@ -984,9 +1063,9 @@ def list_or():
 	# limit=request.form.get('limit')
 	queryList=[]
 	for keyval in query:
-		key=keyval.split("=")[0]
-		val=postprocessor(keyval.split("=")[1])
-		queryList.append({key:val})
+		# key=keyval.split("=")[0]
+		# val=postprocessor(keyval.split("=")[1])
+		queryList.append(queryToDict(keyval))
 	# print "queryList", queryList
 	md5sumlist=col_behavior.distinct('md5sum',{"$or":queryList})
 	# print "OR : md5sumlist", md5sumlist
@@ -996,9 +1075,62 @@ def list_or():
 @app.route("/find/common/", methods=['GET','POST'])
 def find_intersaction_keyval():
 	if request.method=="POST":
-		# print "POST", request.form
-		query = request.form.getlist('query[]')
-		return json.dumps(findCommon(query), default=json_util.default)
+		print "POST", request.form
+		query = request.get_json().get('query')
+		print "query", query
+		orgCommonData=findCommon(query)
+		newCommonData=orgCommonData.copy()
+
+		# filter out unnecessary keys.
+		for key in orgCommonData:
+			# Key starts with
+			if key.startswith('mdpLog.analysisOption') or \
+				key.startswith('mdpLog.analysisDevice') or \
+				key.startswith('mdpLog.targetSample.file'):
+					print "deleting %s: %s" % (key, orgCommonData[key])
+					del newCommonData[key]
+			# EXACT MATCH
+			if key in [
+				'mdpLog.@version',
+				'mdpLog.behavior.behaviorData.@index',
+				'mdpLog.behavior.behaviorData.@severity',
+				'mdpLog.behavior.behaviorData.@behavior_idx',
+				'mdpLog.behavior.behaviorData.@tick',
+				'mdpLog.behavior.behaviorData.@id',
+				'mdpLog.behavior.behaviorData.detailMsg',
+				'mdpLog.behavior.behaviorData.currentProcess.pid',
+				'mdpLog.behavior.behaviorData.currentProcess.parentPid',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.blockCount',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.ctime',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.countryCode',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.format.#text',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.format.@desc',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.reputationMsg',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.resultNumber.#text',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.resultNumber.@desc',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.filename',
+				'mdpLog.behavior.behaviorData.currentProcess.fileInfo.path',
+				'mdpLog.behavior.behaviorData.MdpFlagDescription.@value_0',
+				'mdpLog.behavior.behaviorData.MdpFlagDescription.@value_1',
+				'mdpLog.behavior.behaviorData.longMsg',
+				'mdpLog.behavior.behaviorData.target.fileInfo.reputationMsg',
+			]:
+				print "deleting %s: %s" % (key, orgCommonData[key])
+				del newCommonData[key]
+
+
+		print "finished common calculation"
+		print "="*80
+		print "newCommonData"
+		print newCommonData
+		retCommonData=[]
+		for key in newCommonData:
+			for value in newCommonData[key]:
+				if value not in [None, '']:
+					print 'key', key, 'value', value
+					retCommonData.append({'key':key, 'value':escapeHtml(value)})
+
+		return json.dumps(retCommonData, default=json_util.default)
 
 
 @app.route("/remoteupload/zip/", methods=['GET','POST'])
@@ -1039,33 +1171,72 @@ def remove_updload_csv():
 		return """{"return":"FAIL", "msg":"Upload failed. Please use POST method"}"""
 
 
-@app.route("/download/md5/<md5>", methods=['GET'])
-def fetch_xml(md5):
+@app.route("/download/<md5>", methods=['GET'])
+def download(md5, fileType="xml"):
 	if request.method=="GET":
-		xml_basedir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml'))
-		if request.args.get('filename'):
-			filename = request.args.get('filename') + ".xml"
-		elif md5:
-			filename = md5 + ".xml"
-		filepath = os.path.join(xml_basedir, filename[:2], filename[2:4])
-		if os.path.isfile(filepath):
-			return send_from_directory(filepath, filename, mimetype='application/octet-stream')
+		if request.args.get('fileType'):
+			fileType = request.args.get('fileType')
+
+		fileBaseDir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml' ))
+		fileName = md5+"."+fileType
+		dirPath = os.path.join(fileBaseDir, md5[:2], md5[2:4])
+		filePath = os.path.join(dirPath, fileName)
+
+		print "md5", md5
+		print "filePath", filePath
+		print "fileType", fileType
+
+		if os.path.isfile(filePath):
+			if request.args.get('isCheck') == "true":
+				print "return ok!"
+				return """{"return":"ok"}"""
+			else:
+				print "sending file"
+				return send_from_directory(dirPath, fileName, mimetype='application/octet-stream')
 		else:
 			abort(404)
 
-@app.route("/download/check/md5/<md5>", methods=['GET'])
-def check_xml(md5):
+# @app.route("/htmlview/<md5>", methods=['GET'])
+# def htmlview(md5, fileType="html"):
+# 	if request.method=="GET":
+# 		fileBaseDir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml' ))
+# 		fileName = md5+"."+fileType
+# 		dirPath = os.path.join(fileBaseDir, md5[:2], md5[2:4])
+# 		filePath = os.path.join(dirPath, fileName)
+# 		print "filePath", filePath
+# 		if os.path.isfile(filePath):
+# 			# read file and inject javascript to the end of file.
+# 			return render_template('htmlview.html', md5=md5)
+# 		else:
+# 			abort(404)
+
+# @app.route("/htmlfile/<md5>", methods=['GET'])
+# def htmlfile(md5, fileType="html"):
+# 	if request.method=="GET":
+# 		fileBaseDir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml' ))
+# 		fileName = md5+"."+fileType
+# 		dirPath = os.path.join(fileBaseDir, md5[:2], md5[2:4])
+# 		filePath = os.path.join(dirPath, fileName)
+# 		print "filePath", filePath
+# 		if os.path.isfile(filePath):
+# 			# read file and inject javascript to the end of file.
+# 			return send_from_directory(dirPath, fileName)
+# 		else:
+# 			abort(404)
+
+@app.route("/get/json/<md5>", methods=['GET'])
+def getData(md5):
 	if request.method=="GET":
-		xml_basedir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml'))
-		if request.args.get('filename'):
-			filename = request.args.get('filename') + ".xml"
-		elif md5:
-			filename = md5 + ".xml"
-		filepath = os.path.join(xml_basedir, filename[:2], filename[2:4])
-		if os.path.isfile(filepath):
-			return """{"return":"ok"}"""
-		else:
-			abort(404)
+		data=col_behavior.find({"md5sum":md5},{'mdpLog.behavior.behaviorData':1}).sort({'mdpLog.behavior.behaviorData.@tick':1})
+		print "data",data
+		return json.dumps(data, default=json_util.default)
+
+@app.route("/xmlview/<md5>", methods=['GET'])
+def xmlview(md5, fileType="html"):
+	if request.method=="GET":
+		return render_template('xmlview.html', md5=md5)
+	else:
+		abort(404)
 
 
 @app.route("/")

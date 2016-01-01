@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="kr">
+<meta charset = "utf-8">
+<head>
+	{% block head %}
+
+	<title>MDPDP - {% block title %}{% endblock %}</title>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	{# FAVICON: Generated from http://realfavicongenerator.net/ #}
+	<link rel="apple-touch-icon" sizes="57x57" href="/static/images/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/static/images/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/static/images/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/static/images/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/static/images/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/static/images/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon-180x180.png">
+	<link rel="icon" type="image/png" href="/static/images/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="/static/images/android-chrome-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="/static/images/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="/static/images/favicon-16x16.png" sizes="16x16">
+	<link rel="manifest" href="/static/images/manifest.json">
+	<link rel="shortcut icon" href="/static/images/favicon.ico">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="images/mstile-144x144.png">
+	<meta name="msapplication-config" content="images/browserconfig.xml">
+	<meta name="theme-color" content="#ffffff">
+	
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-slate.min.css">
+	
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-table.min.css">
+	<link rel="stylesheet" type="text/css" href="/static/dragtable/dragtable.css">
+	
+	<link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
+
+	<link rel="stylesheet" type="text/css" href="/static/css/daterangepicker-bs3.css" >
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-select.min.css">
+	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-switch.min.css">
+
+	<link rel="stylesheet" type="text/css" href="/static/x-editable/dist/bootstrap3-editable/css/bootstrap-editable.css">
+
+	<link rel="stylesheet" type="text/css" href="/static/css/animate.css" >
+	<link rel="stylesheet" type="text/css" href="/static/css/custom.css" >
+
+	<script src="/static/js/jquery-1.11.2.min.js"></script>
+	<script src="/static/js/jquery-migrate-1.2.1.min.js"></script>
+	<script src="/static/js/jquery-ui-1.11.4.min.js"></script>
+	<script src="/static/js/jqcookie/jquery.cookie.js"></script>
+
+	<script src="/static/js/d3.min.js"></script>
+	<script src="/static/js/bootstrap.min.js"></script>
+	<script src="/static/js/bootstrap-table.min.js"></script>
+	<script src="/static/js/moment.min.js"></script>
+	<script src="/static/js/daterangepicker.js"></script>
+	<script src="/static/js/bootstrap-select.min.js"></script>
+	<script src="/static/js/bootstrap-switch.min.js"></script>
+	<script src="/static/js/bootstrap-notify.min.js"></script>
+
+	<script src="/static/js/highcharts.js"></script>
+	<script src="/static/js/highcharts-more.js"></script>
+	<script src="/static/js/highcharts.theme.js"></script>
+	<script src="/static/js/highcharts-3d.js"></script>
+	<script src="/static/js/modules/solid-gauge.js"></script>
+	<script src="/static/js/modules/exporting.js"></script>
+
+	<script src="/static/js/extensions/reorder-columns/bootstrap-table-reorder-columns.js"></script>
+	<script src="/static/dragtable/jquery.dragtable.js"></script>
+
+	<script src="/static/js/extensions/cookie/bootstrap-table-cookie.js"></script>
+
+	<script src="/static/js/extensions/multiple-sort/bootstrap-table-multiple-sort.js"></script>
+	
+	{# <script src="/static/js/extensions/filter-control/bootstrap-table-filter-control.js"></script> #}
+
+	<script src="/static/js/extensions/editable/bootstrap-table-editable_mod.js"></script>
+	<script src="/static/x-editable/dist/bootstrap3-editable/js/bootstrap-editable.js"></script>
+
+
+	<script src="/static/js/extensions/resizable/bootstrap-table-resizable.js"></script>
+	<script src="/static/colResizable/colResizable-1.5.min.js"></script>
+
+
+
+	<script src="/static/js/extensions/export/bootstrap-table-export.js"></script>
+	<script src="/static/tableExport.jquery.plugin/libs/FileSaver/FileSaver.min.js"></script>
+	<script src="/static/tableExport.jquery.plugin/libs/jsPDF/jspdf.min.js"></script>
+	<script src="/static/tableExport.jquery.plugin/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js"></script>
+	<script src="/static/tableExport.jquery.plugin/libs/html2canvas/html2canvas.min.js"></script>
+	<script src="/static/tableExport.jquery.plugin/tableExport.min.js"></script>
+
+	<script src="/static/js/extensions/toolbar/bootstrap-table-toolbar.js"></script>
+
+	<script src="/static/js/bindWithDelay.js"></script>
+
+	<script type="text/javascript">
+	function MultiDownload(md5keys, fileType) {
+		$.each(md5keys, function(key, value) {
+			// console.log(value);
+			$.ajax({
+				url:'/download/'+value,
+				data: {
+					fileType: fileType,
+					isCheck: true
+				},
+				success: function(data) {
+					$('<iframe></iframe>')
+								.hide()
+								.attr('src', '/download/'+value+'?fileType='+fileType)
+								.appendTo($('body'))
+								.load(function() {
+									// console.log(response, status, xhr);
+									var that = this;
+									// console.log(that);
+									setTimeout(function() {
+										$(that).remove();
+									}, 100);
+								});
+				},
+				statusCode: {404: function() { alert(value+"."+fileType+" not found"); }}
+			});
+		});
+	}
+
+
+
+	</script>
+
+
+	{% endblock %}
+</head>
+
+<body>
+
+	<nav class="navbar navbar-default navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" rel="home" href="/" title="MDPDP">
+					<img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
+						DPDP <small style="font-size:7px;">designed by ikko</small>
+				</a>
+			</div>
+
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav" style="margin-right: 20px;">
+					<li {%- if request.path == "/" %} class="active"{% endif %}>
+					<a href="/">Dashboard <span class="sr-only">(current)</span></a></li>
+					<li {%- if request.path.startswith("/analysis/") %} class="active"{% endif %}>
+					<a href="/analysis/">Analysis</a></li>
+					<!-- <li><a href="#"><i class="fa fa-user"></i></a></li> -->
+				</ul>
+
+				<div class="navbar-form">
+					{%- if request.path == "/" %}
+					<div class="pull-right">
+						<i class="fa fa-calendar"></i>
+						<div class='form-group'>
+							<input type='text' name='daterange' id='daterange' class='form-control'>
+						</div>
+					</div>
+					{% endif %}
+					
+					{%- if request.path.startswith("/analysis/") %}
+					<div class="form-group" style="display:inline;">
+						<div class="input-group" style="display:table;">
+							<input class="form-control" name="search" placeholder="Search Here" autocomplete="off" autofocus="autofocus" type="text" id="text-search" value="{'md5sum':'127dc9979670864c6869a0893698ee1a'}">
+							<span class="btn input-group-addon" style="width:1%; margin: 0 20px 0 20px;" id="btn-search"><span class="glyphicon glyphicon-search"></span></span>
+							<!-- <button class="btn btn-primary" id="btn-search">Search</button>
+							<div class="input-group-btn" style="width:1%;">
+								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Basic <span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu">
+									<li><a href="#">Basic</a></li>
+									<li><a href="#">Advanced</a></li>
+								</ul>
+							</div> -->
+						</div>
+					</div>
+					{% endif %}
+				</div>
+
+			</div>
+
+		</div>
+	</nav>
+
+	{% block content %}{% endblock %}
+
+</body>
+
+<footer>
+	{% block footer %}{% endblock %}
+</footer>
+
+{% block footer_script %}{% endblock %}
+
+</html>

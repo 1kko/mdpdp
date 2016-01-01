@@ -1,166 +1,158 @@
-<!DOCTYPE html>
-
-<meta charset = "utf-8">
-<head>
-	<title>MDPDP</title>
-	<!-- Generated from http://realfavicongenerator.net/ -->
-	<link rel="apple-touch-icon" sizes="57x57" href="/static/images/apple-touch-icon-57x57.png">
-	<link rel="apple-touch-icon" sizes="60x60" href="/static/images/apple-touch-icon-60x60.png">
-	<link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
-	<link rel="apple-touch-icon" sizes="76x76" href="/static/images/apple-touch-icon-76x76.png">
-	<link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
-	<link rel="apple-touch-icon" sizes="120x120" href="/static/images/apple-touch-icon-120x120.png">
-	<link rel="apple-touch-icon" sizes="144x144" href="/static/images/apple-touch-icon-144x144.png">
-	<link rel="apple-touch-icon" sizes="152x152" href="/static/images/apple-touch-icon-152x152.png">
-	<link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon-180x180.png">
-	<link rel="icon" type="image/png" href="/static/images/favicon-32x32.png" sizes="32x32">
-	<link rel="icon" type="image/png" href="/static/images/android-chrome-192x192.png" sizes="192x192">
-	<link rel="icon" type="image/png" href="/static/images/favicon-96x96.png" sizes="96x96">
-	<link rel="icon" type="image/png" href="/static/images/favicon-16x16.png" sizes="16x16">
-	<link rel="manifest" href="/static/images/manifest.json">
-	<link rel="shortcut icon" href="/static/images/favicon.ico">
-	<meta name="msapplication-TileColor" content="#ffffff">
-	<meta name="msapplication-TileImage" content="images/mstile-144x144.png">
-	<meta name="msapplication-config" content="images/browserconfig.xml">
-	<meta name="theme-color" content="#ffffff">
-
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
-
-	<!-- CDN Bootstrap CSS and JS from CDN -->
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
-
-
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-slate.min.css">
-	<!-- http://axicon.axisj.com/ -->
-	<link rel="stylesheet" type="text/css" href="/static/axicon/axicon.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/js/jstree/themes/proton/style.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-select.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-switch.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/css/bootstrap-table.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/css/colorbox.css">
-	<link rel="stylesheet" type="text/css" href="/static/css/custom.css" >
-	<link rel="stylesheet" type="text/css" href="/static/css/jquery.json-view.min.css">
-
-
-	<!-- https://jquery.com/ -->
-	<script src="/static/js/jquery-1.11.2.min.js"></script>
-	<script src="/static/js/jquery-migrate-1.2.1.min.js"></script>
-
-	<!-- D3 library //cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js -->
-	<script src="/static/js/d3.min.js"></script>
-
-	<!-- http://getbootstrap.com/ -->
-	<script src="/static/js/bootstrap.min.js"></script>
-
-	<!-- http://www.jstree.com/ -->
-	<script src="/static/js/jstree/jstree.min.js"></script>
-
-	<!-- http://silviomoreto.github.io/bootstrap-select/ -->
-	<script src="/static/js/bootstrap-select.min.js"></script>
-
-	<!-- http://www.bootstrap-switch.org/ -->
-	<!-- https://github.com/nostalgiaz/bootstrap-switch -->
-	<script src="/static/js/bootstrap-switch.min.js"></script>
-
-	<!-- http://bootstrap-growl.remabledesigns.com/ -->
-	<!-- https://github.com/mouse0270/bootstrap-notify -->
-	<script src="/static/js/bootstrap-notify.min.js"></script>
-
-	<!-- https://github.com/carhartl/jquery-cookie -->
-	<script src="/static/js/jqcookie/jquery.cookie.js"></script>
-
-	<!-- http://www.jacklmoore.com/colorbox/ -->
-	<!-- https://github.com/jackmoore/colorbox -->
-	<script src="/static/js/jquery.colorbox-min.js"></script>
-
-	<!-- https://gist.github.com/jonraasch/563055 -->
-	<script src="/static/js/textsearch.js"></script>
-
-	<!-- https://gist.github.com/jonraasch/563055 -->
-	<script src="/static/js/bootstrap-table.min.js"></script>
-
-	<!-- https://github.com/1kko/jquery.json-view -->
-	<script src="/static/js/jquery.json-view.min.js"></script>
-
-	<!-- https://github.com/gabelerner/canvg -->
-	<script src="/static/js/rgbcolor.js"></script>
-	<script src="/static/js/StackBlur.js"></script>
-	<script src="/static/js/canvg.js"></script>
-
-	<!-- D3 behavior pid graph -->
+{% extends "layout.html" %}
+{% block title %}Analysis{% endblock %}
+{% block head %}
+	{{ super() }}
 	<script src="/static/js/graph_behavior_pid.js"></script>
+	<!-- <script src="/static/js/app.js"></script> -->
+{% endblock %}
+{% block content %}
 
-	<!-- application js -->
-	<script src="/static/js/app.js"></script>
-</head>
-
-<body>
-	<nav class="navbar navbar-default navbar-fixed-top">
-		<div class="container-fluid">
-			<!-- Brand and toggle get grouped for better mobile display -->
-			<div class="navbar-header">
-				<a class="navbar-brand" rel="home" href="/" title="MDPDP">
-					<img src="/static/images/android-chrome-36x36.png" class="navbar-brand" style="padding:0px 0px 32px 15px;">
-						DPDP <small style="font-size:7px;">designed by ikko</small>
-				</a>
-			</div>
-
-			<!-- Collect the nav links, forms, and other content for toggling -->
-			<ul class="nav navbar-nav">
-				<li><a href="/" id="goto_enginediff_main">Dashboard</a></li>
-				<li class="active"><a href="#">Analysis</a></li>
-				<!-- <li><a href="/uploadcsv/" id="goto_enginediff_uploader">Upload CSV</a></li> -->
-				<li>
-					<div id="toggle_tree_chart" class="col-xs-2" style="margin-top:14px;">
-						<input type="checkbox" id="tree_chart_toggle">
-					</div>
-				</li>
-				<li>
-					<div class="navbar-form pull-right">
-						<input id="text-search" type="text" class="form-control" placeholder="Search" style="width:70%;" value="mdpLog.behavior.behaviorData.target.@bc_id=16781315">
-						<button class="btn btn-primary" id="btn-search">Search</button>
-					</div>
-				</li>
-			</ul>
-		</div><!-- /.container-fluid -->
-	</nav>
-
-	
 	<div class="container-fluid">
 		<div class="show" id="left_pane">
 			<div id="dragbar"></div>
 			<div id="div-history">
+				<div id="andQueryTable-toolbar" style="display: none;">
+					<select class="selectpicker" data-live-search="true" data-size="10" data-header="Select a preset" id="presetSelector">
+						<optgroup label="Network">
+							<option>TCP Connection</option>
+							<option>HTTP Connection</option>
+							<option>UDP Packet</option>
+							<option>DNS Query</option>
+						</optgroup>
+						<optgroup label="Registry">
+							<option>Write Registry</option>
+							<option>Add to StartUp </option>
+							<option>Delete Registry</option>
+						</optgroup>
+						<optgroup label="File">
+							<option>Create new file</option>
+							<option>Delete file</option>
+						</optgroup>
+					</select>
+					<div  class="btn-group">
+						<button id="andQueryTable-addSelected" class="btn btn-default"><i class="fa fa-floppy-o"></i></button>
+						<button id="andQueryTable-removeSelected" class="btn btn-default"><i class="fa fa-trash-o"></i></button>
+						<button id="andQueryTable-refreshSelected" class="btn btn-default"><i class="fa fa-refresh"></i></button>
+					</div>
+					
+				</div>
+
+				<table id="andQueryTable"
+				       class="bootstrapTable"
+				       data-classes="table-condensed table-hover table-striped table-no-bordered"
+				       data-cookie="true"
+				       data-toolbar="#andQueryTable-toolbar"
+				       data-cookie-id-table="andQueryTable"
+				       data-show-export="true"
+				       data-show-footer="true">
+					<thead>
+						<th 
+						    data-click-to-select="true"
+						    data-searchable="false"
+						    data-editable="false"
+						    data-visible="true"
+						    data-width="36px"
+						    data-sortable="false"
+						    data-field="AND"
+						    data-checkbox="true">Select</th>
+						<th 
+							data-editable="true"
+						    data-visible="true"
+						    data-field="Query"
+						    data-footer-formatter="andQueryTableQueryFooterFormatter" 
+						    data-formatter="andQueryTableQueryFormatter">AND Query</th>
+						<th 
+							data-editable="false"
+						    data-visible="true"
+						    data-width="43px"
+						    data-footer-formatter="andQueryTableOperateFooterFormatter"
+						    data-formatter="andQueryOperateFormatter"
+						    data-events="andQueryOperateEvents"
+						    data-align="center"><i id="andQueryTable-RemoveAll" class="fa fa-remove"></i></th>
+					</thead>
+				</table>
+				<hr style="margin: 15px 0 15px 0;">
 				<div id="div-history-title">
-					<h4>Query History</h4>
-					<table class="table table-condensed table-striped" id="historyTable">
+					<div id="historyTable-toolbar" class="btn-group">
+						<button id="historyTable-addSelected" class="btn btn-default"><i class="fa fa-plus"></i></button>
+						<button id="historyTable-removeSelected" class="btn btn-default"><i class="fa fa-remove"></i></button>
+						<button id="historyTable-refreshSelected" class="btn btn-default"><i class="fa fa-refresh"></i></button>
+					</div>
+					<table id="historyTable"
+					class="bootstrapTable"
+					data-classes="table-condensed table-hover table-striped table-no-bordered"
+					data-show-columns="true"
+					data-search="true"
+					data-toolbar="#historyTable-toolbar"
+					data-show-export="true"
+					data-sortable="true"
+					data-click-to-select="true"
+
+					data-unique-id="ID"
+					data-maintain-selected="true"
+					data-reorderable-columns="true"
+					data-page-size="10">
 						<thead>
 							<tr>
-								<th><i class="axi axi-highlight-remove"></i></th>
-								<th>AND</th>
-								<th>Query</th>
-								<th>Count</th>
+							<th 
+							    data-click-to-select="true"  
+							    data-searchable="false" 
+							    data-editable="false" 
+							    data-visible="false" 
+							    data-width="0px"  
+							    data-sortable="false" 
+							    data-field="ID">ID</th>
+							<th 
+							    data-click-to-select="false"  
+							    data-searchable="false" 
+							    data-editable="false" 
+							    data-visible="true"  
+							    data-width="36px" 
+							    data-sortable="false" 
+							    data-field="AND"    
+							    data-checkbox="true">AND</th>
+							<th 
+							    data-click-to-select="false" 
+							    data-searchable="true"  
+							    data-editable="true"
+							    data-visible="true"  
+							    data-width="55%"  
+							    data-sortable="true"
+							    data-formatter="historyTableQueryFormatter"
+							    data-field="Query">Query History</th>
+							<th 
+							    data-click-to-select="false"  
+							    data-searchable="false" 
+							    data-editable="false" 
+							    data-visible="true"  
+							    data-width="72px" 
+							    data-sortable="true"  
+							    data-field="Count"  
+							    data-formatter="historyTableCountFormatter"   
+							    data-events="historyTableCountEvents" 
+							    data-align="right">Count</th>
+							<th 
+							    data-click-to-select="false" 
+							    data-searchable="false" 
+							    data-editable="false" 
+							    data-visible="true"  
+							    data-width="62px" 
+							    data-sortable="false" 
+							    data-align="center" 
+							    data-formatter="historyTableOperateFormatter" 
+							    data-events="historyTableOperateEvents"><i class="fa fa-wrench"></i></th>
 							</tr>
 						</thead>
 						<tbody>
 						</tbody>
 					</table>
 				</div>
-				<h4 id="andQueryTitle">AND Query</h4>
-				<div id="andQueryCount"></div>
-				<div id="andQueryView"></div>
 			</div>
 		</div>
 		<div id="editor_pane">
 			<h4 id="h3_category_title"></h3>
 			<div id="jsonView" class="col-xs-12"></div>
-			<div id="tableView">
-				<div class="btn-group" role="group">
-					<button class="btn btn-primary" id="find_common" data-toggle="modal" data-target="#myModal">Find Common</button>
-					<button class="btn btn-primary" id="download">Download</button>
-				</div>
+			<div id="tableView" style="height: 100%">
 				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
@@ -169,12 +161,26 @@
 								<h4 class="modal-title" id="myModalLabel">Common Key Values</h4>
 							</div>
 							<div class="modal-body" id="myModalBody">
-								<table id="myModalTable"
-								data-striped="true"
-								data-row-style="rowStyle"
-								data-click-to-select="true"
-								data-maintain-selected="true"
-								>
+								<table id="findcommonTable"
+								       class="bootstrapTable"
+								       data-classes="table-condensed table-hover table-striped table-no-bordered"
+								       data-method="post"
+								       data-sort-name="key"
+								       data-sort-order="desc"
+								       data-row-style="rowStyle"
+								       data-show-export="true"
+								       data-click-to-select="true"
+								       data-maintain-selected="true"
+								       data-show-toggle="true"
+								       data-search="true"
+								       data-cookie="true"
+								       data-cookie-id-table="findcommonTable"
+								       data-advanced-search="true"
+								       data-id-table="findcommonTable"
+								       data-maintain-selected="true"
+								       data-show-multi-sort="true" 
+								       data-reorderable-columns="true"
+								       data-resizable="true">
 
 									<thead>
 										<tr>
@@ -187,38 +193,122 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-default" data-dismiss="modal" id="btnCloseModal">Close</button>
-								<button type="button" class="btn btn-primary" id="btnSave">Save changes</button>
+								<button type="button" class="btn btn-primary" id="filelistTable-SendtoQueryHistory">Send to Query History</button>
 							</div>
 						</div>
 					</div>
 				</div>
 
-				<table id='filelist'
-				data-show-columns="true"
-				data-pagination="true"
-				data-side-pagination="server"
-				data-page-list="[5, 10, 20, 50, 100, 200]"
-				data-search="true"
-				data-sort-name="REPORT_PC_COUNT"
-				data-sort-order="desc"
-				data-striped="true"
-				data-row-style="rowStyle"
-				data-page-size="50"
-				data-click-to-select="true"
-				data-maintain-selected="true"
-				>
+				<!-- Split button -->
+
+
+
+				<div id="filelistTable-toolbar">
+					<button class="btn btn-default" id="filelistTable-findCommon" title="Find Common" data-toggle="modal" data-target="#myModal">
+						<i class="fa fa-compress"></i> Find Common</button>
+
+
+	 				<div class="btn-group">
+						<button type="button" class="btn btn-default" onclick="startDownload('xml')"><i class="fa fa-download"></i> Download XML</button>
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							<span class="caret"></span>
+							<span class="sr-only">Toggle Dropdown</span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a href="javascript:startDownload('xml')">Download XML</a></li>
+							<li><a href="javascript:startDownload('html')">Download HTML</a></li>
+						</ul>
+					</div>
+				</div>
+				<table id='filelistTable'
+				       class="bootstrapTable"
+				       data-classes="table-condensed table-hover table-striped table-no-bordered"
+				       data-show-refresh="true"
+				       data-show-columns="true"
+				       data-pagination="true"
+				       data-side-pagination="server"
+				       data-page-list="[10, 50, 100, 200, all]"
+				       data-search="true"
+				       data-sort-name="REPORT_PC_COUNT"
+				       data-sort-order="desc"
+
+				       data-striped="true"
+				       data-row-style="rowStyle"
+				       data-page-size="50"
+				       data-click-to-select="true"
+				       data-maintain-selected="true"
+				       data-toolbar="#filelistTable-toolbar"
+
+				       {# bug: just for first time loading. if this doesn't happen, somehow table doesn't show.  #}
+				       data-url="/list/and/?limit=50&offset=0&sort=REPORT_PC_COUNT&order=desc&query%5B%5D=md5sum%3D0000ff6239e134f6c6a1526b0fdf41b3"
+
+					   data-show-export="true"
+ 					   data-cookie="true"
+					   data-cookie-id-table="filelistTable"
+					   data-advanced-search="true"
+					   data-id-table="filelistTable"
+					   data-maintain-selected="true"
+					   data-show-multi-sort="true" 
+					   data-reorderable-columns="true"
+					   data-resizable="true">
 					<thead>
 					<tr>
-						<th data-visible="true"  data-checkbox="true" data-field="sel">S</th>
-						<th data-sortable="true" data-visible="true"  data-field="MD5_KEY">MD5</th>
-						<th data-sortable="true" data-visible="false" data-field="FILE_NAME">File Name</th>
-						<th data-sortable="true" data-visible="false" data-field="RESULT_NUMBER">Result</th>
-						<th data-sortable="true" data-visible="true"  data-field="VIRUS_NAME">Virus Name</th>
-						<th data-sortable="true" data-visible="false" data-field="SIGN_CREDIT" data-align="right">Sign Credit</th>
-						<th data-sortable="true" data-visible="true"  data-field="REPORT_PC_COUNT" data-align="right">PC Count</th>
-						<th data-sortable="true" data-visible="false" data-field="SAVED_SIZE" data-align="right">File Size</th>
-						<th data-sortable="true" data-visible="false" data-field="FILE_TAG">File Tag</th>
-						<th data-sortable="true" data-visible="true"  data-field="CTIME" data-align="center">Collection Time</th>
+						<th 
+						    data-sortable="false" 
+						    data-visible="true"  
+						    data-checkbox="true" 
+						    data-field="sel">Select</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="260px" 
+						    data-field="MD5_KEY" 
+						    data-formatter="filelistTableMD5Formatter" 
+						    data-events="filelistTableMD5Events">MD5</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="false" 
+						    data-field="FILE_NAME">File Name</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="86px"  
+						    data-field="RESULT_NUMBER" 
+						    data-align="center">Result</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-field="VIRUS_NAME">Virus Name</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="84px"  
+						    data-field="SIGN_CREDIT" 
+						    data-align="right">Credit</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="104px" 
+						    data-field="REPORT_PC_COUNT" 
+						    data-align="right">PC Count</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="96px"  
+						    data-field="SAVED_SIZE" 
+						    data-align="right">File Size</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="116px" 
+						    data-field="FILE_TAG" 
+						    data-align="center">File Tag</th>
+						<th 
+						    data-sortable="true"  
+						    data-visible="true"  
+						    data-width="160px" 
+						    data-field="CTIME" 
+						    data-align="center">Collection Time</th>
 					</tr>
 					</thead>
 				</table>
@@ -231,60 +321,433 @@
 			{% endif %}
 			</form>
 		</div>
-</body>
+{% endblock %}
 
-
+{% block footer_script %}
 <script>
 
-function MultiDownloadXML(selections, md5keyname) {
-	md5list=[]
-	for (var i in selections) {
-		md5list.push(selections[i][md5keyname]);
-	}
+// COMMON/Functions ////////////////////////////////////////////////////////////
+function addSelectionTo(from, to, method) {
+	// console.log('from',from,'to',to,'method',method);
+	var method='append'; // can be [append, prepend]
+	var selectedRows=$(from).bootstrapTable('getSelections');
+	var targetTableIDs=$.map($(to).bootstrapTable('getData'), function(o){ return o.ID; });
+	var selectedRowIDs=$.map($(selectedRows), function(o){ return o.ID; });
 
-	$.each(md5list, function(key, value) {
-		$.ajax({
-			url:'/download/check/md5/'+value,
-			success: function(data) {
-				$('<iframe></iframe>')
-							.hide()
-							.attr('src', '/download/md5/'+value)
-							.appendTo($('body'))
-							.load(function() {
-								// console.log(response, status, xhr);
-								var that = this;
-								console.log(that);
-								setTimeout(function() {
-									$(that).remove();
-								}, 100);
-							});
-			},
-			statusCode: {404: function() { alert(value+".xml file not found"); }}
-		});
+	var i=0;
+	$.grep(selectedRowIDs, function(el) {
+		// if not exists, then append
+		if ($.inArray(el, targetTableIDs) == -1) $(to).bootstrapTable(method, selectedRows[i]);
+		i++;
 	});
 }
 
-$(document).ready(function(){
-	// $("#goto_enginediff_main").on('click', function() {
-	// 	url = window.location.protocol + '//' + window.location.hostname + "/enginediff/";
-	// 	console.log("redirecting to ", url);
-	// 	window.location.replace(url);
-	// });
+function loadFromLocalStorage(tableID) {
+    var tableData = JSON.parse(window.localStorage.getItem(tableID));
+    $('#'+tableID).bootstrapTable('load',tableData);
+}
 
-	// $("#goto_enginediff_uploader").on('click', function() {
-	// 	url = window.location.protocol + '//' + window.location.hostname + "/enginediff/uploader.php";
-	// 	console.log("redirecting to ", url);
-	// 	window.location.replace(url);
-	// });
+function saveToLocalStorage(tableID) {
+	var tableData = $('#'+tableID).bootstrapTable('getData');
+    window.localStorage.setItem(tableID, JSON.stringify(tableData));
+}
+
+function htmlDecode(input){
+  var e = document.createElement('div');
+  e.innerHTML = input;
+  return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+}
+
+function startDownload(fileType) {
+	var md5keys=$.map($('#filelistTable').bootstrapTable('getSelections'), function(o){ return o.MD5_KEY; });
+	if ( md5keys.length > 0 ) {
+		MultiDownload(md5keys,fileType);
+	} else {
+		alert("Please select files.");
+	}
+}
+
+// COMMON/Formatter ////////////////////////////////////////////////////////////
+function rowStyle(row, index) {
+	return { classes: 'monospace'};
+}
+
+// COMMON/Events ///////////////////////////////////////////////////////////////
+// go to bottom refer to: $(document).ready(...);
 
 
-	$('#text-search').on('focusin', 
-	function() {
-		W=$(this).parent().parent().width();
-		$(this).animate({width:W},100).css('word-break','break-all');
+
+// historyTable/Functions //////////////////////////////////////////////////////
+function prependHistoryTable(queries) {
+
+	// console.log("queries", queries);
+ 	var targetTableQueries=$.map($('#historyTable').bootstrapTable('getData'), function(o){ return o.Query; });
+	
+	// if exists, skip. filter non-exist queries.
+	var filteredRows=[];
+	$.each(queries, function(idx, el) {
+		if ($.inArray(el, targetTableQueries) == -1) {
+			filteredRows.push(el);
+		}
 	});
 
-	// var i = 0;
+ 	var targetTableIDs=$.map($('#historyTable').bootstrapTable('getData'), function(o) { return o.ID; });
+ 	var nextID=Math.max.apply(Math,targetTableIDs)+1;
+	var i=0;
+
+	// update row.Count
+	$.each(filteredRows, function(idx, obj) {
+		var row=$('#historyTable').bootstrapTable('prepend', {
+			Query: filteredRows[i],
+			AND: false,
+			Count: null,
+			ID:nextID
+		}).bootstrapTable('getRowByUniqueId', nextID);
+		updateCount(filteredRows[i], '#historyTable', row);
+		i++;
+		nextID++;
+	});
+
+}
+
+function updateRow(target, row, field, data) {
+	var haystack=$.map($(target).bootstrapTable('getData'), function(o){return o.Query;});
+	var index=$.inArray(row.Query, haystack);
+	// console.log("func updateRow","target", target, "row", row, "index", index, "field", field, "data", data);
+	row[field]=data;
+	var retval=$(target).bootstrapTable('updateRow', {index: index, row: row});
+	return retval;
+}
+
+function updateCount(query, target, row) {
+	// var notify=$.notify({'message':'Counting...'},{'type':'info'});
+	updateRow(target,row,'Count','Loading ');
+
+	var spinnerObj=$(target).find('[data-value=" '+row.Query+'"]').parent().parent();
+	spinnerObj.find('.fa-refresh').addClass('fa-spin');
+	
+	var retval=$.ajax({
+		url: "/count/",
+		type:"POST",
+		dataType:"json",
+		async: true,
+		data:{
+			"query": " "+query
+		},
+		success: function(data) {
+			// console.log("target",target,"row",row,"field",field,"data",data);
+			updateRow(target,row,'Count',data);
+			spinnerObj.find('.fa-spin').removeClass('fa-spin');
+			
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			console.log('error',errorThrown);
+			updateRow(target,row,'Count','Error');
+			spinnerObj.find('.fa-spin').removeClass('fa-spin');
+		}
+	});
+	return retval;
+}
+
+// historyTable/Formatter //////////////////////////////////////////////////////
+function historyTableQueryFormatter(value, row, index) {
+	return " "+value;
+}
+
+function historyTableCountFormatter(value, row, index) {
+	return [
+		value, 
+		'&nbsp;',
+		'<span class="refresh" href="javascript:void(0)" title="Refresh">',
+		'<i class="fa fa-refresh"></i>',
+		'</span>'
+	].join('');
+}
+
+
+function historyTableOperateFormatter(value, row, index) {
+	return [
+		'<a class="add" href="javascript:void(0)" title="Add">',
+		'<i class="fa fa-plus"></i>',
+		'</a>',
+		'&nbsp;',
+		'<a class="list" href="javascript:void(0)" title="List">',
+		'<i class="fa fa-list"></i>',
+		'</a>',
+		'&nbsp;',
+		'<a class="remove" href="javascript:void(0)" title="Remove">',
+		'<i class="fa fa-trash-o"></i>',
+		'</a>'
+	].join('');
+};
+
+
+// historyTable/Events /////////////////////////////////////////////////////////
+window.historyTableOperateEvents = {
+	'click .add': function (e, value, row) {
+		// alert('You click ADD action, row: ' + JSON.stringify(row));
+		andQueryIds=$.map($('#andQueryTable').bootstrapTable('getData'), function(o){ return o.ID; });
+		// console.log("andQueryIds:"+andQueryIds);
+		if ( $.inArray(row.ID, andQueryIds) < 0 )
+		{
+			// console.log("not exists: "+row.ID);
+			$('#andQueryTable').bootstrapTable('append', row);
+		} else {
+			alert("Same value already exists!");
+		}
+		// console.log(e);
+	},	
+	'click .list': function (e, value, row) {
+		// loadFilelistTable(queries): receives array of queries.
+		loadFilelistTable([row.Query]);
+	},
+	'click .remove': function (e, value, row) {
+		$('#historyTable').bootstrapTable('remove',
+		{
+			field: 'Query',
+			values: [row.Query]
+		});
+	}
+};
+
+window.historyTableCountEvents = {
+	'click .refresh': function (e, value, row, index) {
+		// console.log('You click REFRESH action, row: ' + JSON.stringify(row));
+		updateCount(row.Query, '#historyTable', row);
+	}
+}
+
+$('#historyTable').on('editable-save.bs.table', function (event, column, row, key, value) {
+	// console.log("editable-save.bs.table happend in #andQueryTable", column, row, key, value);
+	updateCount(row.Query, "#historyTable", row);
+});
+
+// historyTable-toolbar
+$('#historyTable-addSelected').on('click',function () {
+	addSelectionTo('#historyTable', '#andQueryTable', 'append');
+});
+
+$('#historyTable-removeSelected').on('click',function () {
+	var ids = $.map($('#historyTable').bootstrapTable('getSelections'), function (row) {
+		return row.ID;
+	});
+	// console.log('removebutton pressed', 'ids:', ids);
+	$('#historyTable').bootstrapTable('remove', {
+		field: 'ID',
+		values: ids
+	});
+});
+
+$('#historyTable-refreshSelected').on('click',function () {
+	// console.log('refreshSelected pressed', 'ids:', ids);
+	$.each($('#historyTable').bootstrapTable('getSelections'), function(i, row) {
+		// console.log(row.ID, row.Query);
+		updateCount(row.Query, "#historyTable", row);
+	});
+});
+
+// save changes to localstorage (to check events, use all.bs.table)
+$('#historyTable').bindWithDelay('check-all.bs.table uncheck-all.bs.table check.bs.table uncheck.bs.table post-body.bs.table', function(name, args) {
+	saveToLocalStorage('historyTable');
+	// using 700 ms delay, to minimize further save to serverside Database Storage.
+},700,true);
+
+
+
+
+// andQueryTable/Functions /////////////////////////////////////////////////////
+// none
+
+// andQueryTable/Formatter /////////////////////////////////////////////////////
+// And Query Table Footer Formatters
+function andQueryTableQueryFormatter(value, row, index) {
+	return " "+value;
+}
+function andQueryTableQueryFooterFormatter(data) {
+	return [
+		'<div id="andQueryTableFooterCount">Total 0 Found</div>'
+	].join('');
+}
+
+function andQueryTableOperateFooterFormatter(data) {
+	return [
+		'<a class="list" id="andQueryTableFooterList" href="javascript:void(0)" title="Display files including selected behaviors">',
+		'<i class="fa fa-list"></i>',
+		'</a>'
+	].join('');
+}
+
+function andQueryOperateFormatter(value, row, index) {
+	return [
+		'<a class="remove" href="javascript:void(0)" title="Remove">',
+		'<i class="fa fa-remove"></i>',
+		'</a>'
+	].join('');
+}
+
+// andQueryTable/Events ////////////////////////////////////////////////////////
+window.andQueryOperateEvents = {
+	'click .remove': function (e, value, row) {
+		// alert('You click remove action, row: ' + JSON.stringify(row));
+		$('#andQueryTable').bootstrapTable('remove',
+		{
+			field: 'ID',
+			values: [row.ID]
+		});
+	}
+}
+
+$('#andQueryTable').bindWithDelay('post-body.bs.table editable-save.bs.table check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function (event, value, row, index) {
+	// console.log("some changes happend in #andQueryTable");
+	// data=$(this).bootstrapTable('getData');
+	var queries = $.map($(this).bootstrapTable('getSelections'), function (row) {
+		return row.Query; //.split("=")[1];
+	});
+	// console.log("data.length",data.length);
+	if (queries.length >= 1) {
+		
+		// console.log("ajax queries", queries);
+		$('#andQueryTableFooterCount').text('Loading...');
+
+		$.ajax({
+			url: "/count/and/",
+			type:"POST",
+			dataType:"json",
+			data:{
+				"query": queries
+			},
+			success: function(count) {
+				// var count=data;
+				$('#andQueryTableFooterCount').text('Total '+count+' Found from '+queries.length+' selection');
+
+			},
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				$('#andQueryTableFooterCount').text('Error');
+				console.log('error',errorThrown);
+			}
+		});
+
+	} else {
+		count=0;
+		$('#andQueryTableFooterCount').text('Total '+count+' Found');
+	}
+
+	// console.log("queries",queries);
+	// event for List in footer.
+	$('#andQueryTableFooterList').on('click', function() {
+		loadFilelistTable(queries);
+	});
+// bindWithDelay 800ms.
+},800, true);
+
+
+// save changes to localstorage (to check events, use all.bs.table)
+$('#andQueryTable').bindWithDelay('check-all.bs.table uncheck-all.bs.table check.bs.table uncheck.bs.table post-body.bs.table', function(name, args) {
+	// console.log('\nargs',args);
+	saveToLocalStorage('andQueryTable');
+	// using 700 ms delay, to minimize further save to serverside Database Storage.
+},700,true);
+
+/// debug ONLY
+// $('#andQueryTable').on('all.bs.table', function(name, args) {
+// 	console.log('\nargs',args);
+// });
+
+
+// filelistTable/Functions /////////////////////////////////////////////////////
+function loadFilelistTable(queries) {
+	// console.log("#loadFilelistTable",queries);
+	if (queries.length >= 1 ){
+		$('#filelistTable').bootstrapTable('destroy');
+		$('#filelistTable').bootstrapTable({
+			url: '/list/and/', 
+			method:'get',
+			queryParams: function(params) {
+				return {
+					'limit'  : params.limit,
+					'offset' : params.offset,
+					'sort'   : params.sort,
+					'order'  : params.order,
+					'search' : params.search,
+					'query'  : queries
+				};
+			},
+
+		}); //.on('load-success.bs.table page-change.bs.table', function(){
+			// console.log("data load successful");
+		//});
+	}
+
+}
+
+// filelistTable/Formatter /////////////////////////////////////////////////////
+function filelistTableMD5Formatter(value, row, index) {
+	return [
+		'<span class="show" href="javascript:void(0)" title="Show HTML">',
+		value, 
+		'&nbsp;',
+		'<i class="fa fa-external-link"></i>',
+		'</span>'
+	].join('');
+}
+
+// filelistTable/Events ////////////////////////////////////////////////////////
+window.filelistTableMD5Events = {
+	'click .show': function (e, md5sum, row) {
+		// alert('You click remove action, row: ' + JSON.stringify(row));
+		// alert(md5sum);
+		// console.log(md5sum);
+		// display/detail/<md5>
+		// display/graph/<md5>
+		var childWin = window.open("/xmlview/"+md5sum, "_blank", "width=1566, height=800, status=yes, toolbar=no, menubar=no, location=no, addressbar=no"); 
+		childWin.asdInfo=row;
+	}
+}
+
+$('#filelistTable-findCommon').on('click', function() {
+
+	$('#findcommonTable').bootstrapTable();
+    var md5array = $.map($("#filelistTable").bootstrapTable('getSelections'), function (row) {
+        return row.MD5_KEY;
+    });
+    // console.log("md5array", md5array);
+
+    $('#findcommonTable').bootstrapTable('refresh',{
+    	url: '/find/common/', 
+    	method: 'post',
+    	query: {'query': md5array},
+    	queryParams: function(params) {
+    	 	// console.log("params",params, "query", md5array);
+    	 	return {
+    	 		'method':'post',
+    			'query'  : md5array
+    		}
+    	}
+
+    });
+
+
+	$('#filelistTable-SendtoQueryHistory').on('click',function () {
+		var selectedRows=$('#findcommonTable').bootstrapTable('getSelections');
+		var selectedRowQueries=$.map($(selectedRows), function(o) {
+			return o.key+"="+o.value; 
+		});
+		prependHistoryTable(selectedRowQueries);
+		// $('#findcommonTable').bootstrapTable('destroy');
+		// $('#btnCloseModal').click();
+	});
+
+});
+
+
+// When Document Ready. MAIN ///////////////////////////////////////////////////
+$(document).ready(function(){
+
+	$('.bootstrapTable').bootstrapTable();
+	loadFromLocalStorage('historyTable');
+	loadFromLocalStorage('andQueryTable');
+
+
 	$('#dragbar').mousedown(function(e){
 		e.preventDefault();
 			// $('#mousestatus').html("mousedown" + i++);
@@ -309,35 +772,27 @@ $(document).ready(function(){
 		}
 	});
 
-	// flask if / endif
-	{% if query %}
-	$('#text-search').val("{{query}}");
-	$('#btn-search').click();
+	$('#btn-search').on('click',function() {
+		prependHistoryTable([$('#text-search').val()]);
+	});
+
+	{% if md5list %}
+		// when md5list is sent from dashboard
+		var md5list=$.map($('#md5liststr').val().split(";"), function(o) {return "md5sum="+o;});
+		prependHistoryTable(md5list);
+		// reset searchbox.
+		$('#md5liststr').val("");
 	{% endif %}
 
-	// {% if md5list %}
-	// var md5list=$('#md5liststr').val().split(";");
-	// for (var i in md5list) {
-	// 	$('#text-search').val("md5sum="+md5list[i]);
-	// 	$('#btn-search').click();
-	// }
-	// // reset searchbox.
-	// $('#text-search').val("");
-	// {% endif %}
-
-	$('#download').on('click', function() {
-		selections=$('#filelist').bootstrapTable('getSelections');
-		// console.log(selections);
-		MultiDownloadXML(selections, "MD5_KEY");
-
+	$('#andQueryTable-RemoveAll').on('click', function() {
+		$('#andQueryTable').bootstrapTable('removeAll');
 	});
+
+	$('#filelistTable-downloadXML').on('click', function() {
+		startDownload('xml');
+	});	
 });
 
+
 </script>
-<!-- 
-mdpLog.behavior.behaviorData.target.@bc_id=16781315
-
-
-http://localhost:28017/MDP/behaviorCollection/?filter_mdpLog.behavior.behaviorData.target.@bc_id=16781315
-
-mdpLog.targetSample.file.md5=0d881c8d165ed96d0b929b8e7e8c0242 -->
+{% endblock %}

@@ -114,6 +114,7 @@ def findCommon(targetList):
 #    print "targetList", targetList
     global matchbox
 
+    print "targetList", targetList
     dicts=[]
     query={
         '$or': [

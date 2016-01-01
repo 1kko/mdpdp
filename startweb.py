@@ -188,15 +188,13 @@ def postprocessor(value):
 		return int(value)
 	except (ValueError, TypeError):
 		# print "not num: escaped value", value
-
-		
 		if (value.lower()=="true"):
 			return True
 		elif (value.lower()=="false"):
 			return False
 
 		return HTMLParser.HTMLParser().unescape(value)
-		# return value
+
 
 
 def getDaterange(input_daterange):
@@ -906,17 +904,9 @@ def md5list():
 @app.route("/count/", methods=['POST'])
 def count():
 	query=request.form.get('query')
-	print query
-	# try:
-	# 	key=query.split("=")[0][1:]
-	# 	val=postprocessor(query.split("=")[1])
-	# 	data=col_behavior.find({key:val}).count()
-	# 	print "key",key,"val",val,"data",data
-	# except:
-	# 	data=col_behavior.find(json.loads(query.replace("'","\""))).count()
-	data=col_behavior.find(queryToDict(query)).count()
-
-	return json.dumps(data, default=json_util.default)
+	# print query
+	data=col_behavior.find(queryToDict(query)).distinct("md5sum")
+	return json.dumps(len(data), default=json_util.default)
 
 
 @app.route("/count/and/", methods=['POST'])
@@ -926,42 +916,24 @@ def count_and():
 	print "queries: %s" % query
 
 	for keyval in query:
-		# try:
-		# 	key=keyval.split("=")[0]
-		# 	val=postprocessor(keyval.split("=")[1])
-		# 	queryList.append({key:val})
-		# except:
-		# 	queryList.append(json.loads(keyval.replace("'","\"")))
 		queryList.append(queryToDict(keyval))
-	data=col_behavior.find({"$and":queryList}).count()
-
-
-	return json.dumps(data, default=json_util.default)
+	data=col_behavior.find({"$and":queryList}).distinct("md5sum")
+	return json.dumps(len(data), default=json_util.default)
 
 
 @app.route("/detail_one/", methods=['POST'])
 def detail_one():
 	query=request.form.get('query')
 	# print request.form
-	# key=query.split("=")[0]
-	# val=postprocessor(query.split("=")[1])
-
-	# data=json_util.dumps(col_behavior.find({key:val}).sort('mdpLog.behavior.behaviorData.@tick',1))
 	data=json_util.dumps(col_behavior.find(queryToDict(query)).sort('mdpLog.behavior.behaviorData.@tick',1))
-	# print "data", data
-	# mola mola
-	return json_util.dumps(data)
-	# return data
 
+	return json_util.dumps(data)
 
 @app.route("/detail_one/and/", methods=['POST'])
 def detail_one_and():
 	query=request.form.getlist('query[]')
 	queryList=[]
 	for keyval in query:
-		# key=keyval.split("=")[0]
-		# val=postprocessor(keyval.split("=")[1])
-		# queryList.append({key:val})
 		queryList.append(queryToDict(keyval))
 
 	data=col_behavior.find({"$and":queryList}).sort({'mdpLog.behavior.behaviorData.@tick':1})
@@ -987,15 +959,7 @@ def list():
 		order = request.args.get('order')
 		search= request.args.get('search')
 
-	# try:
-	# 	key=query.split("=")[0]
-	# 	val=postprocessor(query.split("=")[1])
-	# except:
-	# 	key=query.split("%\3D")[0]
-	# 	val=postprocessor(query.split("%\3D")[1])
-
 	# data from mongodb
-	# md5sumlist=col_behavior.find({key:val}).distinct("md5sum")
 	md5sumlist=col_behavior.find(queryToDict(query)).distinct("md5sum")
 	
 	# print "search", search
@@ -1057,18 +1021,12 @@ def list_or():
 		order = request.args.get('order')
 		search= request.args.get('search')
 
-	# global cursor
-	# print "*"*80
-	# print query
-	# limit=request.form.get('limit')
 	queryList=[]
 	for keyval in query:
-		# key=keyval.split("=")[0]
-		# val=postprocessor(keyval.split("=")[1])
 		queryList.append(queryToDict(keyval))
-	# print "queryList", queryList
+
 	md5sumlist=col_behavior.distinct('md5sum',{"$or":queryList})
-	# print "OR : md5sumlist", md5sumlist
+
 	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
 
 
@@ -1196,33 +1154,6 @@ def download(md5, fileType="xml"):
 		else:
 			abort(404)
 
-# @app.route("/htmlview/<md5>", methods=['GET'])
-# def htmlview(md5, fileType="html"):
-# 	if request.method=="GET":
-# 		fileBaseDir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml' ))
-# 		fileName = md5+"."+fileType
-# 		dirPath = os.path.join(fileBaseDir, md5[:2], md5[2:4])
-# 		filePath = os.path.join(dirPath, fileName)
-# 		print "filePath", filePath
-# 		if os.path.isfile(filePath):
-# 			# read file and inject javascript to the end of file.
-# 			return render_template('htmlview.html', md5=md5)
-# 		else:
-# 			abort(404)
-
-# @app.route("/htmlfile/<md5>", methods=['GET'])
-# def htmlfile(md5, fileType="html"):
-# 	if request.method=="GET":
-# 		fileBaseDir=os.path.abspath(os.path.join(os.path.dirname( __file__ ), "upload", 'xml' ))
-# 		fileName = md5+"."+fileType
-# 		dirPath = os.path.join(fileBaseDir, md5[:2], md5[2:4])
-# 		filePath = os.path.join(dirPath, fileName)
-# 		print "filePath", filePath
-# 		if os.path.isfile(filePath):
-# 			# read file and inject javascript to the end of file.
-# 			return send_from_directory(dirPath, fileName)
-# 		else:
-# 			abort(404)
 
 @app.route("/get/json/<md5>", methods=['GET'])
 def getData(md5):
@@ -1230,6 +1161,7 @@ def getData(md5):
 		data=col_behavior.find({"md5sum":md5},{'mdpLog.behavior.behaviorData':1}).sort({'mdpLog.behavior.behaviorData.@tick':1})
 		print "data",data
 		return json.dumps(data, default=json_util.default)
+
 
 @app.route("/xmlview/<md5>", methods=['GET'])
 def xmlview(md5, fileType="html"):

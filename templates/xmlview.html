@@ -274,6 +274,9 @@ $(document).ready(function(){
 				} else {
 					mdp_flag=o['MdpFlagDescription']['#text'] ? o['MdpFlagDescription']['#text'] : undefined;
 				}
+
+				// target
+				try { target=o['target']['path'] } catch(e) { target=undefined; }
 				
 				// shortMsg
 				if ('msg' in o) {
@@ -337,6 +340,8 @@ $(document).ready(function(){
 					mdp_flag      : mdp_flag,
 					// mdpLog.behavior.behaviorData.currentProcess.path
 					current       : currentProcess,
+					// mdpLog.behavior.target.path
+					target        : target,
 					// mdpLog.behavior.behaviorData.shortMsg
 					shortMsg      : shortMsg,
 					// mdpLog.behavior.behaviorData.longMsg
@@ -360,7 +365,8 @@ $(document).ready(function(){
 						{ sortable: true, visible: true,  align: 'center', width:'48px',  field: 'bc_id',         title: 'bc_id' },
 						{ sortable: true, visible: true,  align: 'center', width:'40px',  field: 'rule_id',       title: 'rule_id' },
 						{ sortable: true, visible: true,  align: 'left',   width:'200px', field: 'mdp_flag',      title: 'mdp_flag' },
-						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'current',       title: 'current' },
+						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'current',       title: 'current' },
+						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'target',        title: 'target' },
 						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'shortMsg',      title: 'shortMsg' },
 						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'longMsg',       title: 'longMsg' },
 						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'detailMsg',     title: 'detailMsg' },

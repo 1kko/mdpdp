@@ -797,15 +797,16 @@ def queryToDict(query):
 		# otherwise it means it's aaa.bb.cc=ccc type
 			idx=Query.find("=")
 			key=Query[:idx]
-			val=Query[idx+1:]
-		
-		Val=postprocessor(val)
-		retval={key:Val}
+			val=postprocessor(Query[idx+1:])
+
+		retval={key:val}
 
 		print "retval",retval
 		return retval
 	except:
-		raise
+		# if query includes regex 
+		return query
+
 
 
 @login_manager.unauthorized_handler
@@ -905,7 +906,12 @@ def md5list():
 def count():
 	query=request.form.get('query')
 	# print query
-	data=col_behavior.find(queryToDict(query)).distinct("md5sum")
+	dQuery=queryToDict(query)
+	print "dQuery",dQuery
+	try:
+		data=col_behavior.find(dQuery).distinct("md5sum")
+	except:
+		data=col_behavior.find(dQuery)
 	return json.dumps(len(data), default=json_util.default)
 
 

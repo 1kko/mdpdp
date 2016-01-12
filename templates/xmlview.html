@@ -84,7 +84,7 @@
 <!-- 				<button class="btn btn-default" id="download"><i class="fa fa-download"></i> Download XML</button>
  -->
 
- 				<div class="btn-group">
+				<div class="btn-group">
 					<button type="button" class="btn btn-default" onclick="startDownload('xml')"><i class="fa fa-download"></i> Download XML</button>
 					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<span class="caret"></span>
@@ -116,48 +116,48 @@
 var md5key=document.location.href.slice(-32);
 
 JSON.unflatten = function(data) {
-    "use strict";
-    if (Object(data) !== data || Array.isArray(data))
-        return data;
-    var result = {}, cur, prop, idx, last, temp;
-    for(var p in data) {
-        cur = result, prop = "", last = 0;
-        do {
-            idx = p.indexOf(".", last);
-            temp = p.substring(last, idx !== -1 ? idx : undefined);
-            cur = cur[prop] || (cur[prop] = (!isNaN(parseInt(temp)) ? [] : {}));
-            prop = temp;
-            last = idx + 1;
-        } while(idx >= 0);
-        cur[prop] = data[p];
-    }
-    return result[""];
+	"use strict";
+	if (Object(data) !== data || Array.isArray(data))
+		return data;
+	var result = {}, cur, prop, idx, last, temp;
+	for(var p in data) {
+		cur = result, prop = "", last = 0;
+		do {
+			idx = p.indexOf(".", last);
+			temp = p.substring(last, idx !== -1 ? idx : undefined);
+			cur = cur[prop] || (cur[prop] = (!isNaN(parseInt(temp)) ? [] : {}));
+			prop = temp;
+			last = idx + 1;
+		} while(idx >= 0);
+		cur[prop] = data[p];
+	}
+	return result[""];
 }
 JSON.flatten = function(data) {
-    var result = {};
-    function recurse (cur, prop) {
-        if (Object(cur) !== cur) {
-            result[prop] = cur;
-        } else if (Array.isArray(cur)) {
-             for(var i=0, l=cur.length; i<l; i++)
-                 recurse(cur[i], prop ? prop+"."+i : ""+i);
-            if (l == 0)
-                result[prop] = [];
-        } else {
-            var isEmpty = true;
-            for (var p in cur) {
-                isEmpty = false;
-                recurse(cur[p], prop ? prop+"."+p : p);
-            }
-            if (isEmpty)
-                result[prop] = {};
-        }
-    }
-    recurse(data, "");
-    return result;
+	var result = {};
+	function recurse (cur, prop) {
+		if (Object(cur) !== cur) {
+			result[prop] = cur;
+		} else if (Array.isArray(cur)) {
+			 for(var i=0, l=cur.length; i<l; i++)
+				 recurse(cur[i], prop ? prop+"."+i : ""+i);
+			if (l == 0)
+				result[prop] = [];
+		} else {
+			var isEmpty = true;
+			for (var p in cur) {
+				isEmpty = false;
+				recurse(cur[p], prop ? prop+"."+p : p);
+			}
+			if (isEmpty)
+				result[prop] = {};
+		}
+	}
+	recurse(data, "");
+	return result;
 }
 function stringStartsWith (string, prefix) {
-    return string.slice(0, prefix.length) == prefix;
+	return string.slice(0, prefix.length) == prefix;
 }
 
 function startDownload(fileType) {
@@ -230,7 +230,7 @@ $(document).ready(function(){
 			if ('data.mdpLog.references.messages' in data.mdpLog.references){
 				$.each(data.mdpLog.references.messages.msg, function(idx, o) {
 					var key=o['@id'],
-					    val=o['text'];
+						val=o['text'];
 					messages[key]=val;
 				});
 			} 
@@ -239,6 +239,12 @@ $(document).ready(function(){
 			var items=[];
 			$.each(data.mdpLog.behavior.behaviorData, function(idx, o) {
 				var _isMDP=o['@behavior_type']=="mdp" ? true : false;
+
+				// pid
+				try { pid=o['currentProcess']['pid']; } catch(e) { pid=undefined; }
+
+				// ppid
+				try { ppid=o['currentProcess']['parentPid']; } catch(e) { ppid=undefined; }
 
 				// tick
 				try { tick=o['@tick']; } catch(e) { tick=undefined;}
@@ -320,6 +326,10 @@ $(document).ready(function(){
 				items.push({
 					// i
 					id            : idx,
+					// mdpLog.behavior.currentProcess.pid
+					pid           : pid,
+					// mdpLog.behavior.currentProcess.parentPid
+					ppid          : ppid,
 					// mdpLog.behavior.behaviorData.@tick
 					tick          : tick, 
 					// mdpLog.behavior.behaviorData.@behavior_type
@@ -357,6 +367,8 @@ $(document).ready(function(){
 			$('#flatMDPTable').bootstrapTable({
 					columns: [
 						{ sortable: true, visible: true,  align: 'center', width:'20px',  field: 'id',            title: 'id' },
+						{ sortable: true, visible: true,  align: 'center', width:'30px',  field: 'pid',           title: 'pid'},
+						{ sortable: true, visible: true,  align: 'center', width:'30px',  field: 'ppid',          title: 'ppid'},
 						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'tick',          title: 'tick' },
 						{ sortable: true, visible: true,  align: 'center', width:'52px',  field: 'behavior_type', title: 'behavior_type' },
 						{ sortable: true, visible: true,  align: 'center', width:'38px',  field: 'severity',      title: 'severity' },
@@ -437,13 +449,45 @@ $(document).ready(function(){
 
 								// console.log('skip', key);
 								return '';
-
 							}
 
-							return  '<label class="chkBoxLabel" style="font-weight:normal;">'+
-									   '<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key+'" /> '+
-									   key+' : '+value+
-									'</label><br>';
+							// if ($.inArray(key, ['target.remoteIp',]) >= 0 ) {
+							// 	var target_div_id=value.replace(/\./g,"_")
+							// 	retval='<div id='+target_div_id+' style="display:none; position:absolute;border-style:solid;background-color:white;padding:5px;">'+'hello world'+'</div>';
+							// 	// $.ajax({
+							// 	// 	url: '/nslookup/',
+							// 	// 	dataType:"json",
+							// 	// 	async: true,
+							// 	// 	data: {
+							// 	// 		limit: 1,
+							// 	// 		offset: 0,
+							// 	// 		sort: 'REPORT_PC_COUNT',
+							// 	// 		order: 'desc',
+							// 	// 		query: ['md5sum='+md5key],
+							// 	// 	},
+							// 	// 	success: function(data){
+							// 	// 		// console.log(data);
+							// 	// 		asdInfo=data.rows[0];
+							// 	// 	}, 
+							// 	// 	error: function (XMLHttpRequest, textStatus, errorThrown) {
+							// 	// 	console.log('error',errorThrown);
+							// 	// 	}
+							// 	// });
+
+							// 	return  retval
+							// 			+'<label class="chkBoxLabel" style="font-weight:normal;">'
+							// 			+'<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key
+							// 			+'" onmouseover="ShowContent('+"'"+target_div_id+"'"+'); return true;"'
+							// 			+'" onmouseout="HideContent('+"'"+target_div_id+"'"+'); return true;"/> '
+							// 			+key+' : '+value
+							// 			+'</label><br>';
+							// } else {
+								return  '<label class="chkBoxLabel" style="font-weight:normal;">'+
+										   '<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key+'" /> '+
+										   key+' : '+value+
+										'</label><br>';
+							// }
+
 						}
 						var selectbox="";
 

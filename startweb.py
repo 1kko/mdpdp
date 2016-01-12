@@ -644,7 +644,7 @@ def csvToMongo(csvString):
 		# print "+="*40
 
 		elem['Size']=int(elem['Size'])
-		elem['Date']=dateParser(elem['Date'])
+		elem['Date']=dateParser(elem['Date']+" 09:01:00")
 		elem['Severity']=int(elem['Severity'])
 		if elem['Threat_Name'].lower()=="none" or elem['Threat_Name']=="":
 			elem['Threat_Name']=None
@@ -1032,8 +1032,10 @@ def list_or():
 		queryList.append(queryToDict(keyval))
 
 	md5sumlist=col_behavior.distinct('md5sum',{"$or":queryList})
-
-	return medfileSearch(md5sumlist, search, sort, order, limit, offset)
+	# print "list/or/ md5sumlist", md5sumlist
+	retval=medfileSearch(md5sumlist, search, sort, order, limit, offset)
+	# print "list/or/ retval", retval
+	return retval
 
 
 @app.route("/find/common/", methods=['GET','POST'])
@@ -1146,17 +1148,17 @@ def download(md5, fileType="xml"):
 		dirPath = os.path.join(fileBaseDir, md5[:2], md5[2:4])
 		filePath = os.path.join(dirPath, fileName)
 
-		print "md5", md5
-		print "filePath", filePath
-		print "fileType", fileType
+		# print "md5", md5
+		# print "filePath", filePath
+		# print "fileType", fileType
 
 		if os.path.isfile(filePath):
 			if request.args.get('isCheck') == "true":
-				print "return ok!"
+				# print "return ok!"
 				return """{"return":"ok"}"""
 			else:
-				print "sending file"
-				return send_from_directory(dirPath, fileName, mimetype='application/octet-stream')
+				# print "sending file", dirPath, fileName
+				return send_from_directory(dirPath, fileName, as_attachment=True, attachment_filename=fileName, mimetype='application/octet-stream')
 		else:
 			abort(404)
 

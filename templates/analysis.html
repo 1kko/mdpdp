@@ -152,7 +152,7 @@
 		<div id="editor_pane">
 			<h4 id="h3_category_title"></h3>
 			<div id="jsonView" class="col-xs-12"></div>
-			<div id="tableView" style="height: 100%">
+			<div id="tableView">
 				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 					<div class="modal-dialog" role="document">
 						<div class="modal-content">
@@ -173,8 +173,6 @@
 								       data-maintain-selected="true"
 								       data-show-toggle="true"
 								       data-search="true"
-								       data-cookie="true"
-								       data-cookie-id-table="findcommonTable"
 								       data-advanced-search="true"
 								       data-id-table="findcommonTable"
 								       data-maintain-selected="true"
@@ -193,7 +191,7 @@
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-default" data-dismiss="modal" id="btnCloseModal">Close</button>
-								<button type="button" class="btn btn-primary" id="filelistTable-SendtoQueryHistory">Send to Query History</button>
+								<button type="button" class="btn btn-primary sendToHistory" data-from-table="findcommonTable"><i class="fa fa-search-plus"></i> Send to Query History</button>
 							</div>
 						</div>
 					</div>
@@ -219,99 +217,95 @@
 							<li><a href="javascript:startDownload('html')">Download HTML</a></li>
 						</ul>
 					</div>
+					<button class="btn btn-default sendToHistory" title="Add to History" data-from-table="filelistTable"><i class="fa fa-search-plus"></i> Send to Query History</button>
 				</div>
-				<table id='filelistTable'
-				       class="bootstrapTable"
-				       data-classes="table-condensed table-hover table-striped table-no-bordered"
-				       data-show-refresh="true"
-				       data-show-columns="true"
-				       data-pagination="true"
-				       data-side-pagination="server"
-				       data-page-list="[10, 50, 100, 200, all]"
-				       data-search="true"
-				       data-sort-name="REPORT_PC_COUNT"
-				       data-sort-order="desc"
 
-				       data-striped="true"
-				       data-row-style="rowStyle"
-				       data-page-size="50"
-				       data-click-to-select="true"
-				       data-maintain-selected="true"
-				       data-toolbar="#filelistTable-toolbar"
+				<div id="filelistTableDiv" class="row">
+					<table id='filelistTable'
+					       data-toggle="table"
+					       data-classes="table-striped table-hover table-no-bordered"
+					       data-show-refresh="true"
+					       data-show-columns="true"
+					       data-pagination="true"
+					       data-side-pagination="server"
+					       data-page-list="[10, 50, 100, 200, all]"
+					       data-search="true"
+					       data-sort-name="REPORT_PC_COUNT"
+					       data-sort-order="desc"
+					       
+					       data-row-style="rowStyle"
+					       data-page-size="50"
+					       data-click-to-select="true"
+					       data-maintain-selected="true"
+					       data-toolbar="#filelistTable-toolbar"
 
-				       {# bug: just for first time loading. if this doesn't happen, somehow table doesn't show.  #}
-				       data-url="/list/and/?limit=50&offset=0&sort=REPORT_PC_COUNT&order=desc&query%5B%5D=md5sum%3D0000ff6239e134f6c6a1526b0fdf41b3"
+					       {# bug: just for first time loading. if this doesn't happen, somehow table doesn't show.  
+					       data-url="/list/and/?limit=50&offset=0&sort=REPORT_PC_COUNT&order=desc&query%5B%5D=md5sum%3D0000ff6239e134f6c6a1526b0fdf41b" #}
 
-					   data-show-export="true"
- 					   data-cookie="true"
-					   data-cookie-id-table="filelistTable"
-					   data-advanced-search="true"
-					   data-id-table="filelistTable"
-					   data-maintain-selected="true"
-					   data-show-multi-sort="true" 
-					   data-reorderable-columns="true"
-					   data-resizable="true">
-					<thead>
-					<tr>
-						<th 
-						    data-sortable="false" 
-						    data-visible="true"  
-						    data-checkbox="true" 
-						    data-field="sel">Select</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="260px" 
-						    data-field="MD5_KEY" 
-						    data-formatter="filelistTableMD5Formatter" 
-						    data-events="filelistTableMD5Events">MD5</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="false" 
-						    data-field="FILE_NAME">File Name</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="86px"  
-						    data-field="RESULT_NUMBER" 
-						    data-align="center">Result</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-field="VIRUS_NAME">Virus Name</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="84px"  
-						    data-field="SIGN_CREDIT" 
-						    data-align="right">Credit</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="104px" 
-						    data-field="REPORT_PC_COUNT" 
-						    data-align="right">PC Count</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="96px"  
-						    data-field="SAVED_SIZE" 
-						    data-align="right">File Size</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="116px" 
-						    data-field="FILE_TAG" 
-						    data-align="center">File Tag</th>
-						<th 
-						    data-sortable="true"  
-						    data-visible="true"  
-						    data-width="160px" 
-						    data-field="CTIME" 
-						    data-align="center">Collection Time</th>
-					</tr>
-					</thead>
-				</table>
+						   data-show-export="true"
+	 					   data-cookie="false"
+						   data-cookie-id-table="filelistTable"
+						   data-advanced-search="true"
+						   data-id-table="filelistTable"
+						   data-show-multi-sort="true" 
+						   {# data-reorderable-columns="true"
+						   data-resizable="true" #}
+						   >
+						<thead>
+						<tr>
+							<th 
+							    data-sortable="false" 
+							    data-visible="true"  
+							    data-checkbox="true" 
+							    data-field="sel">Select</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="MD5_KEY" 
+							    data-formatter="filelistTableMD5Formatter" 
+							    data-events="filelistTableMD5Events">MD5</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="false" 
+							    data-field="FILE_NAME">File Name</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="RESULT_NUMBER" 
+							    data-align="center">Result</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="VIRUS_NAME">Virus Name</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="SIGN_CREDIT" 
+							    data-align="right">Credit</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="REPORT_PC_COUNT" 
+							    data-align="right">PC Count</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="SAVED_SIZE" 
+							    data-align="right">File Size</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="FILE_TAG" 
+							    data-align="center">File Tag</th>
+							<th 
+							    data-sortable="true"  
+							    data-visible="true"  
+							    data-field="CTIME" 
+							    data-align="center">Collection Time</th>
+						</tr>
+						</thead>
+					</table>
+				</div>
 			</div>
 			<div class="row">
 			<form id="md5listForm" action="">
@@ -393,6 +387,10 @@ function prependHistoryTable(queries) {
 
  	var targetTableIDs=$.map($('#historyTable').bootstrapTable('getData'), function(o) { return o.ID; });
  	var nextID=Math.max.apply(Math,targetTableIDs)+1;
+ 	if (nextID==-Infinity) {
+ 		nextID=1
+ 	}
+
 	var i=0;
 
 	// update row.Count
@@ -655,12 +653,15 @@ $('#andQueryTable').bindWithDelay('check-all.bs.table uncheck-all.bs.table check
 
 
 // filelistTable/Functions /////////////////////////////////////////////////////
-function loadFilelistTable(queries) {
+function loadFilelistTable(queries, queryType) {
 	// console.log("#loadFilelistTable",queries);
 	if (queries.length >= 1 ){
+		var url='/list/and/';
+		queryType=='or' ? url='/list/or/' : url='/list/and/';
 		$('#filelistTable').bootstrapTable('destroy');
+		console.log(url);
 		$('#filelistTable').bootstrapTable({
-			url: '/list/and/', 
+			url: url, 
 			method:'get',
 			queryParams: function(params) {
 				return {
@@ -673,8 +674,8 @@ function loadFilelistTable(queries) {
 				};
 			},
 
-		}); //.on('load-success.bs.table page-change.bs.table', function(){
-			// console.log("data load successful");
+		}).bootstrapTable('resetView'); //.on('load-success.bs.table page-change.bs.table', function(){
+		console.log("data load successful");
 		//});
 	}
 
@@ -706,7 +707,7 @@ window.filelistTableMD5Events = {
 
 $('#filelistTable-findCommon').on('click', function() {
 
-	$('#findcommonTable').bootstrapTable();
+	$('#findcommonTable').bootstrapTable('destroy').bootstrapTable();
     var md5array = $.map($("#filelistTable").bootstrapTable('getSelections'), function (row) {
         return row.MD5_KEY;
     });
@@ -725,19 +726,14 @@ $('#filelistTable-findCommon').on('click', function() {
     	}
 
     });
-
-
-	$('#filelistTable-SendtoQueryHistory').on('click',function () {
-		var selectedRows=$('#findcommonTable').bootstrapTable('getSelections');
-		var selectedRowQueries=$.map($(selectedRows), function(o) {
-			return o.key+"="+o.value; 
-		});
-		prependHistoryTable(selectedRowQueries);
-		// $('#findcommonTable').bootstrapTable('destroy');
-		// $('#btnCloseModal').click();
-	});
-
 });
+
+/// Resizing
+$('#filelistTable').on('post-body.bs.table', function() {
+	$(this).closest('.fixed-table-container').css('height',100+"%");
+});
+// 	console.log('\nargs',args);
+// });
 
 
 // When Document Ready. MAIN ///////////////////////////////////////////////////
@@ -779,18 +775,45 @@ $(document).ready(function(){
 	{% if md5list %}
 		// when md5list is sent from dashboard
 		var md5list=$.map($('#md5liststr').val().split(";"), function(o) {return "md5sum="+o;});
-		prependHistoryTable(md5list);
-		// reset searchbox.
-		$('#md5liststr').val("");
+		loadFilelistTable(md5list, 'or');
+
 	{% endif %}
 
 	$('#andQueryTable-RemoveAll').on('click', function() {
 		$('#andQueryTable').bootstrapTable('removeAll');
 	});
 
+	$('#filelistTable').bootstrapTable({
+		data:[{}]
+	});
+
 	$('#filelistTable-downloadXML').on('click', function() {
 		startDownload('xml');
 	});	
+
+	$('.sendToHistory').on('click',function () {
+		var targetTable='#'+$(this).data('from-table');
+		var selectedRows=$(targetTable).bootstrapTable('getSelections');
+		
+		switch(targetTable) {
+			case '#findcommonTable':
+			// if data is from findcommonTable
+				var selectedRowQueries=$.map($(selectedRows), function(o) {
+					return o.key+"="+o.value; 
+				});
+				break;
+			case '#filelistTable':
+			// if data is from filelistTable
+				var selectedRowQueries=$.map($(selectedRows), function(o) {
+					return 'md5sum='+o.MD5_KEY;
+				});
+		}
+
+
+		prependHistoryTable(selectedRowQueries);
+		// $('#findcommonTable').bootstrapTable('destroy');
+		// $('#btnCloseModal').click();
+	});
 });
 
 

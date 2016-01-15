@@ -140,7 +140,10 @@ JSON.flatten = function(data) {
 			result[prop] = cur;
 		} else if (Array.isArray(cur)) {
 			 for(var i=0, l=cur.length; i<l; i++)
-				 recurse(cur[i], prop ? prop+"."+i : ""+i);
+				// recurse(cur[i], prop ? prop+"."+i : ""+i);
+				// changed to not to show arrayNumber.
+				// need to do something here.
+				recurse(cur[i], prop ? prop+"."+i : ""+i);
 			if (l == 0)
 				result[prop] = [];
 		} else {
@@ -246,6 +249,12 @@ $(document).ready(function(){
 				// ppid
 				try { ppid=o['currentProcess']['parentPid']; } catch(e) { ppid=undefined; }
 
+				// target_pid
+				try { target_pid=o['target']['pid']; } catch(e) { target_pid=undefined; }
+
+				// target_ppid
+				try { target_ppid=o['target']['pidParent']; } catch(e) { target_ppid=undefined; }
+
 				// tick
 				try { tick=o['@tick']; } catch(e) { tick=undefined;}
 
@@ -330,6 +339,10 @@ $(document).ready(function(){
 					pid           : pid,
 					// mdpLog.behavior.currentProcess.parentPid
 					ppid          : ppid,
+					// mdpLog.behavior.target.pid
+					target_pid    : target_pid,
+					// mdpLog.behavior.target.pidParent
+					target_ppid    : target_ppid,
 					// mdpLog.behavior.behaviorData.@tick
 					tick          : tick, 
 					// mdpLog.behavior.behaviorData.@behavior_type
@@ -369,6 +382,8 @@ $(document).ready(function(){
 						{ sortable: true, visible: true,  align: 'center', width:'20px',  field: 'id',            title: 'id' },
 						{ sortable: true, visible: true,  align: 'center', width:'30px',  field: 'pid',           title: 'pid'},
 						{ sortable: true, visible: true,  align: 'center', width:'30px',  field: 'ppid',          title: 'ppid'},
+						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'target_pid',    title: 'target_pid'},
+						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'target_ppid',   title: 'target_ppid'},
 						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'tick',          title: 'tick' },
 						{ sortable: true, visible: true,  align: 'center', width:'52px',  field: 'behavior_type', title: 'behavior_type' },
 						{ sortable: true, visible: true,  align: 'center', width:'38px',  field: 'severity',      title: 'severity' },

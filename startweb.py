@@ -202,8 +202,12 @@ def getDaterange(input_daterange):
 	strStartDate, strEndDate = input_daterange.split(" - ")
 	intCompensationSec=float(32400)
 	# print ("strStartDate: %s, strEndDate:%s" % (strStartDate,strEndDate))
-	startDate=datetime.fromtimestamp(float(dateParser(strStartDate).strftime('%s'))-intCompensationSec)
-	endDate  =datetime.fromtimestamp(float(dateParser(strEndDate  ).strftime('%s'))-intCompensationSec)
+	# startDate=datetime.fromtimestamp(float(dateParser(strStartDate).strftime('%s'))+intCompensationSec)
+	startDate=datetime.fromtimestamp(float(dateParser(strStartDate).strftime('%s')))
+
+	# endDate  =datetime.fromtimestamp(float(dateParser(strEndDate  ).strftime('%s'))+intCompensationSec)
+	endDate  =datetime.fromtimestamp(float(dateParser(strEndDate  ).strftime('%s')))
+
 	# print ("startDate:%s, endDate: %s" %(startDate, endDate))
 	return startDate, endDate
 
@@ -268,10 +272,9 @@ def getArrayPerDay(query, daterange):
 
 	chartCount=[]
 	for date in dateList:
-		cnt=col_enginediff.distinct('File.MD5', {'$and':[query, {'Date':date}]})
-		size=len(cnt)
-		chartNsec=time.mktime(date.timetuple())*1000
-		chartCount.append([chartNsec, size])
+		count=len(col_enginediff.distinct('File.MD5', {'$and':[query, {'Date':date}]}))
+		timestamp=(int(time.mktime(date.timetuple()))+32400)*1000
+		chartCount.append([timestamp, count])
 
 	return chartCount
 
@@ -294,10 +297,9 @@ def getTotalMaliciousCountArrayPerDay(query, daterange=None):
 	
 	chartCount=[]
 	for date in dateList:
-		cnt=col_enginediff.distinct('File.MD5', {'$and':[query, {'Date':date}]})
-		size=len(cnt)
-		chartNsec=time.mktime(date.timetuple())*1000
-		chartCount.append([chartNsec, size])
+		count=len(col_enginediff.distinct('File.MD5', {'$and':[query, {'Date':date}]}))
+		timestamp=(int(time.mktime(date.timetuple()))+32400)*1000
+		chartCount.append([timestamp, count])
 
 	return chartCount
 
@@ -435,6 +437,7 @@ def calculateDailyPercent(numerator, denominator):
 
 
 def returnEngineDiff(fetchDate):
+	# print "fetchDate", fetchDate
 	TotalData=getTotalPerDay(fetchDate)
 	DICAData=getArrayPerDay(
 		{'$and':
@@ -483,7 +486,7 @@ def returnEngineDiff(fetchDate):
 		'MDP_VM':MDP_VMData,
 		'MDP_VM_percent':MDP_VMPercent
 	}
-	# print retval
+	# print "retval", retval
 	return retval
 
 
@@ -644,7 +647,10 @@ def csvToMongo(csvString):
 		# print "+="*40
 
 		elem['Size']=int(elem['Size'])
-		elem['Date']=dateParser(elem['Date']+" 09:01:00")
+		print elem['Date']
+		elem['Date']=elem['Date']+" 09:01:00"
+		print elem['Date']
+		elem['Date']=dateParser(elem['Date'])
 		elem['Severity']=int(elem['Severity'])
 		if elem['Threat_Name'].lower()=="none" or elem['Threat_Name']=="":
 			elem['Threat_Name']=None
@@ -1120,7 +1126,7 @@ def remove_updload_zip():
 
 @app.route("/remoteupload/csv/", methods=['POST'])
 def remove_updload_csv():
-	# curl --include --form file=@151025_pe_mds6000_FillNone.csv http://192.168.41.1/uploadcsv
+	# curl --include --form file=@151025_pe_mds6000_FillNone.csv http://192.168.41.1:5000/remoteupload/csv/
 	if request.method=="POST":
 		file=request.files['file']
 		if file:

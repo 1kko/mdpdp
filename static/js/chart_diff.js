@@ -3,7 +3,8 @@ function loadDiffChart(Diff_data_array) {
     Highcharts.setOptions({
 		lang: {
 			thousandsSep: ''
-		}
+		},
+		timezoneOffset: 9*60,
 	});
     
 	$('#chart_EngineDiff').highcharts({

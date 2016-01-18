@@ -555,6 +555,10 @@ def returnResultTable(fetchDate=None, fetchEngine=None, daterange=None):
 			if document['Threat'][0].has_key('Name'):
 				threat_name=document['Threat'][0]['Name']
 
+			behavior_count="None"
+			if document['Threat'][0].has_key('behaviorCount'):
+				behavior_count=int(document['Threat'][0]['behaviorCount'])
+
 			crc64="None"
 			if document['File'][0].has_key('CRC64'):
 				crc64=document['File'][0]['CRC64']
@@ -567,7 +571,8 @@ def returnResultTable(fetchDate=None, fetchEngine=None, daterange=None):
 				"CRC64":crc64,
 				"Size":document['File'][0]['Size'],
 				"Severity":document['Threat'][0]['Severity'],
-				"Threat_Name":threat_name
+				"Threat_Name":threat_name,
+				"Behavior_Count":behavior_count,
 			}
 
 			results={}
@@ -657,6 +662,11 @@ def csvToMongo(csvString):
 		if elem.has_key("CRC64") is not True:
 			elem['CRC64']=None
 
+		try:
+			elem.pop('Unnamed: 0')
+		except:
+			pass
+
 		# Processing From here.
 		Date=Seoul.localize(elem['Date'])
 		elem.pop('Date')
@@ -674,10 +684,19 @@ def csvToMongo(csvString):
 		elem.pop('CRC64')
 		elem.pop('Size')
 
+		behaviorCount=0
+		if elem['BeaviorCount']:
+			behaviorCount=elem['BeaviorCount']
+			elem.pop('BeaviorCount')
+		elif elem['BehaviorCount']:
+			behaviorCount=elem['BehaviorCount']
+			elem.pop('BehaviorCount')
+
 		Threat={
 			"Severity":elem['Severity'],
 			"Name": elem['Threat_Name'],
-			"VM_Severity":elem['Result']
+			"VM_Severity":elem['Result'],
+			"behaviorCount":behaviorCount,
 		}
 		elem.pop('Severity')
 		elem.pop('Result')
@@ -752,12 +771,13 @@ def csvToMongo(csvString):
 					Reason=reason
 
 
+
 				# print "Engine: %s" % Engine
 				Results.update({
 					Engine: {
 						"Version":EngineVersion,
 						"Result":Result,
-						"Reason":Reason
+						"Reason":Reason,
 					}
 				})
 			# print Results

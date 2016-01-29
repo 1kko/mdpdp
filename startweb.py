@@ -158,6 +158,16 @@ def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 		rows=[]
 		for row in queryResult.limit(limit).offset(offset):
 			# print "row.report_pc_count:", row.report_pc_count
+
+
+			# Inject Tick Count from MongoDB Collection
+			docs=col_behavior.find({'md5sum':row.md5_key},{'mdpLog.behavior.behaviorData.@tick':1})
+			tickCount=None
+			for doc in docs:
+				tickCount=len(doc["mdpLog"]["behavior"]["behaviorData"])
+				# print row.md5_key, tickCount
+
+
 			rows.append(\
 				{"MD5_KEY":row.md5_key, \
 				 "FILE_NAME": row.file_name, \
@@ -167,7 +177,8 @@ def medfileSearch(md5sumlist, search, sort, order, limit, offset):
 				 "REPORT_PC_COUNT":str(row.report_pc_count), \
 				 "SAVED_SIZE":str(row.saved_size), \
 				 "FILE_TAG":row.file_tag, \
-				 "CTIME":str(row.ctime)\
+				 "CTIME":str(row.ctime), \
+				 "TICKCOUNT": tickCount \
 			})
 
 		total=queryResult.count()
@@ -949,7 +960,14 @@ def count_and():
 
 	for keyval in query:
 		queryList.append(queryToDict(keyval))
+
 	data=col_behavior.find({"$and":queryList}).distinct("md5sum")
+	# print "DistinctCount: %s" % len(data)
+	# print "DistinctList: %s" % col_behavior.find({"$and":queryList}).distinct("md5sum")
+	print "DistinctCount: %s" % len(data)
+	print "UniqueCount :%s" %len(set(data))
+
+	# data=col_behavior.find({"$and":queryList}).distinct("md5sum")
 	return json.dumps(len(data), default=json_util.default)
 
 

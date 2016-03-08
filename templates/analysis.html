@@ -710,7 +710,7 @@ window.filelistTableMD5Events = {
 
 $('#filelistTable-findCommon').on('click', function() {
 
-	$('#findcommonTable').bootstrapTable('destroy').bootstrapTable();
+	$('#findcommonTable').bootstrapTable('removeAll');
     var md5array = $.map($("#filelistTable").bootstrapTable('getSelections'), function (row) {
         return row.MD5_KEY;
     });

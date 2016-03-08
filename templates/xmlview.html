@@ -379,24 +379,25 @@ $(document).ready(function(){
 
 			$('#flatMDPTable').bootstrapTable({
 					columns: [
-						{ sortable: true, visible: true,  align: 'center', width:'20px',  field: 'id',            title: 'id' },
-						{ sortable: true, visible: true,  align: 'center', width:'30px',  field: 'pid',           title: 'pid'},
-						{ sortable: true, visible: true,  align: 'center', width:'30px',  field: 'ppid',          title: 'ppid'},
-						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'target_pid',    title: 'target_pid'},
-						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'target_ppid',   title: 'target_ppid'},
-						{ sortable: true, visible: false, align: 'center', width:'30px',  field: 'tick',          title: 'tick' },
-						{ sortable: true, visible: true,  align: 'center', width:'52px',  field: 'behavior_type', title: 'behavior_type' },
-						{ sortable: true, visible: true,  align: 'center', width:'38px',  field: 'severity',      title: 'severity' },
-						{ sortable: true, visible: true,  align: 'center', width:'40px',  field: 'category',      title: 'category' },
-						{ sortable: true, visible: false, align: 'center', width:'43px',  field: 'param_id',      title: 'param_id' },
-						{ sortable: true, visible: true,  align: 'center', width:'48px',  field: 'bc_id',         title: 'bc_id' },
-						{ sortable: true, visible: true,  align: 'center', width:'40px',  field: 'rule_id',       title: 'rule_id' },
-						{ sortable: true, visible: true,  align: 'left',   width:'200px', field: 'mdp_flag',      title: 'mdp_flag' },
-						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'current',       title: 'current' },
-						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'target',        title: 'target' },
-						{ sortable: true, visible: true,  align: 'left',   width:'100px', field: 'shortMsg',      title: 'shortMsg' },
-						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'longMsg',       title: 'longMsg' },
-						{ sortable: true, visible: false, align: 'left',   width:'100px', field: 'detailMsg',     title: 'detailMsg' },
+						{ sortable: true,  visible: true,  align: 'center', width:'20px',  field: 'id',            title: 'id' },
+						{ sortable: true,  visible: true,  align: 'center', width:'30px',  field: 'pid',           title: 'pid'},
+						{ sortable: true,  visible: true,  align: 'center', width:'30px',  field: 'ppid',          title: 'ppid'},
+						{ sortable: true,  visible: false, align: 'center', width:'30px',  field: 'target_pid',    title: 'target_pid'},
+						{ sortable: true,  visible: false, align: 'center', width:'30px',  field: 'target_ppid',   title: 'target_ppid'},
+						{ sortable: true,  visible: false, align: 'center', width:'30px',  field: 'tick',          title: 'tick' },
+						{ sortable: true,  visible: true,  align: 'center', width:'52px',  field: 'behavior_type', title: 'behavior_type' },
+						{ sortable: true,  visible: true,  align: 'center', width:'38px',  field: 'severity',      title: 'severity' },
+						{ sortable: true,  visible: true,  align: 'center', width:'40px',  field: 'category',      title: 'category' },
+						{ sortable: true,  visible: false, align: 'center', width:'43px',  field: 'param_id',      title: 'param_id' },
+						{ sortable: true,  visible: true,  align: 'center', width:'48px',  field: 'bc_id',         title: 'bc_id' },
+						{ sortable: true,  visible: true,  align: 'center', width:'40px',  field: 'rule_id',       title: 'rule_id' },
+						{ sortable: true,  visible: true,  align: 'left',   width:'200px', field: 'mdp_flag',      title: 'mdp_flag' },
+						{ sortable: true,  visible: true,  align: 'left',   width:'100px', field: 'current',       title: 'current' },
+						{ sortable: true,  visible: true,  align: 'left',   width:'100px', field: 'target',        title: 'target' },
+						{ sortable: true,  visible: true,  align: 'left',   width:'100px', field: 'shortMsg',      title: 'shortMsg' },
+						{ sortable: true,  visible: false, align: 'left',   width:'100px', field: 'longMsg',       title: 'longMsg' },
+						{ sortable: true,  visible: false, align: 'left',   width:'100px', field: 'detailMsg',     title: 'detailMsg' },
+						{ sortable: false, visible: false, align: 'center', width:'20px',  field: '__detail',      title: '' },
 					],
 					data: items,
 					detailView: true,
@@ -405,6 +406,10 @@ $(document).ready(function(){
 					search: true,
 					showToggle: true,
 					showColumns: true,
+					// Column 위치 변경
+					reorderableColumns: true,
+					// Cookie 저장 (컬럼순서는 불가)
+					cookie: true,
 					toolbar: '#flatMDPTable-toolbar',
 					rowStyle: function(row, index) {
 						var retStyle={}
@@ -422,7 +427,10 @@ $(document).ready(function(){
 					onExpandRow: function(index, row, $detail) {
 						// console.log("index",index,"row",row);
 
+						var detectFile_hr_flag=0;
+
 						function inputify(key, value) {
+							var retval='';
 
 							if (jQuery.type(value) in ['object', undefined,'undefined']) {
 								// console.log('skip',key, 'value', value);
@@ -466,43 +474,30 @@ $(document).ready(function(){
 								return '';
 							}
 
-							// if ($.inArray(key, ['target.remoteIp',]) >= 0 ) {
-							// 	var target_div_id=value.replace(/\./g,"_")
-							// 	retval='<div id='+target_div_id+' style="display:none; position:absolute;border-style:solid;background-color:white;padding:5px;">'+'hello world'+'</div>';
-							// 	// $.ajax({
-							// 	// 	url: '/nslookup/',
-							// 	// 	dataType:"json",
-							// 	// 	async: true,
-							// 	// 	data: {
-							// 	// 		limit: 1,
-							// 	// 		offset: 0,
-							// 	// 		sort: 'REPORT_PC_COUNT',
-							// 	// 		order: 'desc',
-							// 	// 		query: ['md5sum='+md5key],
-							// 	// 	},
-							// 	// 	success: function(data){
-							// 	// 		// console.log(data);
-							// 	// 		asdInfo=data.rows[0];
-							// 	// 	}, 
-							// 	// 	error: function (XMLHttpRequest, textStatus, errorThrown) {
-							// 	// 	console.log('error',errorThrown);
-							// 	// 	}
-							// 	// });
-
-							// 	return  retval
-							// 			+'<label class="chkBoxLabel" style="font-weight:normal;">'
-							// 			+'<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key
-							// 			+'" onmouseover="ShowContent('+"'"+target_div_id+"'"+'); return true;"'
-							// 			+'" onmouseout="HideContent('+"'"+target_div_id+"'"+'); return true;"/> '
-							// 			+key+' : '+value
-							// 			+'</label><br>';
-							// } else {
-								return  '<label class="chkBoxLabel" style="font-weight:normal;">'+
-										   '<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key+'" /> '+
+							// MED_MDPFLAG별 별도 분리
+							if ($.inArray(key, ['MdpFlagDescription.#text',]) >= 0 ) {
+								// split using '. '
+								$.each(value.split(/\.\s/), function(i, val) {
+									retval+='<label class="chkBoxLabel" style="font-weight:normal;">'+
+										'<input type="checkbox" class="chkBox" name="chkBox" value="'+val+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key+'" /> '+
+										   key+' : '+val+
+										'</label><br>';
+								});
+							} else {
+								retval='<label class="chkBoxLabel" style="font-weight:normal;">'+
+										'<input type="checkbox" class="chkBox" name="chkBox" value="'+value+'" data-xmlkey="mdpLog.behavior.behaviorData.'+key+'" /> '+
 										   key+' : '+value+
 										'</label><br>';
-							// }
+							}
 
+							// Detect File Array 이전에 <hr>로 분리
+							if ( key.match("^detectFile.") && detectFile_hr_flag==0 ) {
+								retval="<hr>"+retval;
+								// do it once.
+								detectFile_hr_flag=1;
+							}
+
+							return retval;
 						}
 						var selectbox="";
 
@@ -512,6 +507,7 @@ $(document).ready(function(){
 
 						$detail.html('<div style="margin-left:20px;">'+selectbox+'</div>');
 
+						// Highlight element on Check Event
 						$('.chkBox').on('change', function() {
 							// console.log("this",$(this));
 							if ($(this).is(':checked')) {
